@@ -37,7 +37,7 @@ captures/
 
 # IntelliJ
 *.iml
-./.idea
+
 
 # Keystore files
 *.jks
@@ -93,4 +93,3 @@ connected-device.txt
 
 # Kotlin
 *.kt.swp
-
