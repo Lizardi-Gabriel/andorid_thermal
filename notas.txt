@@ -1,0 +1,11 @@
+
+pendientes:
+
+implementar la pantalla de inicio antes de iniciar sesion o registrarse
+cambiar a menu barra lateral
+Dashboard del Admin
+Generación de Reportes (Admin)
+Logs del Sistema (Admin)
+Notificaciones Push
+
+

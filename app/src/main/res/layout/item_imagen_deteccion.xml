@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Imagen base -->
+    <ImageView
+        android:id="@+id/ivImagen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:background="@android:color/black"/>
+
+    <!-- Canvas para dibujar detecciones -->
+    <com.thermal.monitoring.presentation.eventos.DeteccionCanvasView
+        android:id="@+id/canvasDetecciones"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <!-- ProgressBar mientras carga la imagen -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
+
+</FrameLayout>

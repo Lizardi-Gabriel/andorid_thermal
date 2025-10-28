@@ -35,7 +35,19 @@ class DashboardOperadorViewModel @Inject constructor(
             val result = eventoRepository.listarEventos(limit = 50)
             _eventosState.value = result
 
-            // Contar eventos pendientes
+            if (result is Resource.Success) {
+                val pendientes = result.data?.count { it.estatus == EstatusEventoEnum.PENDIENTE } ?: 0
+                _eventosPendientes.value = pendientes
+            }
+        }
+    }
+
+    fun cargarEventosPorFecha(fecha: String) {
+        viewModelScope.launch {
+            _eventosState.value = Resource.Loading()
+            val result = eventoRepository.listarEventosPorFecha(fecha)
+            _eventosState.value = result
+
             if (result is Resource.Success) {
                 val pendientes = result.data?.count { it.estatus == EstatusEventoEnum.PENDIENTE } ?: 0
                 _eventosPendientes.value = pendientes

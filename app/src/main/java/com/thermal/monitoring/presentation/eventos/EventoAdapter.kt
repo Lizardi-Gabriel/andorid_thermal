@@ -2,7 +2,6 @@ package com.thermal.monitoring.presentation.eventos
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -11,8 +10,6 @@ import com.thermal.monitoring.R
 import com.thermal.monitoring.data.remote.EstatusEventoEnum
 import com.thermal.monitoring.data.remote.Evento
 import com.thermal.monitoring.databinding.ItemEventoBinding
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 class EventoAdapter(
     private val onEventoClick: (Evento) -> Unit
@@ -38,17 +35,13 @@ class EventoAdapter(
 
         fun bind(evento: Evento) {
             binding.apply {
-                // Formatear fecha
-                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 tvFecha.text = evento.fechaEvento
 
-                // Mostrar hora de inicio y fin si hay imágenes
                 if (evento.imagenes.isNotEmpty()) {
                     val horaInicio = evento.imagenes.first().horaSubida.substringAfter("T").substringBefore(".")
                     val horaFin = evento.imagenes.last().horaSubida.substringAfter("T").substringBefore(".")
                     tvHora.text = "$horaInicio - $horaFin"
 
-                    // Cargar imagen preview
                     val imagenPreview = evento.imagenes.maxByOrNull { it.detecciones.size }
                     imagenPreview?.let {
                         ivPreview.load(it.rutaImagen) {
@@ -58,37 +51,68 @@ class EventoAdapter(
                         }
                     }
                 } else {
-                    tvHora.text = "Sin imágenes"
+                    tvHora.text = "Sin imagenes"
                 }
 
-                // Número de detecciones
-                val totalDetecciones = evento.imagenes.sumOf { it.detecciones.size }
-                tvDetecciones.text = "🔥 $totalDetecciones detección(es)"
+                val maxDetecciones = evento.imagenes.maxOfOrNull { it.detecciones.size } ?: 0
+                tvMaxDetecciones.text = "Max fumadores: $maxDetecciones"
 
-                // Descripción
-                tvDescripcion.text = evento.descripcion ?: "Sin descripción"
+                tvDescripcion.text = evento.descripcion ?: "Sin descripcion"
 
-                // Estatus
                 when (evento.estatus) {
                     EstatusEventoEnum.PENDIENTE -> {
                         chipEstatus.text = "Pendiente"
-                        chipEstatus.setChipBackgroundColorResource(R.color.teal_200)
+                        chipEstatus.setChipBackgroundColorResource(R.color.evento_pendiente)
                     }
                     EstatusEventoEnum.CONFIRMADO -> {
                         chipEstatus.text = "Confirmado"
-                        chipEstatus.setChipBackgroundColorResource(android.R.color.holo_green_light)
+                        chipEstatus.setChipBackgroundColorResource(R.color.evento_confirmado)
                     }
                     EstatusEventoEnum.DESCARTADO -> {
                         chipEstatus.text = "Descartado"
-                        chipEstatus.setChipBackgroundColorResource(android.R.color.holo_red_light)
+                        chipEstatus.setChipBackgroundColorResource(R.color.evento_descartado)
                     }
                 }
 
-                // Click en el item
+                tvCalidadAire.text = calcularPromediosCalidadAire(evento)
+
                 root.setOnClickListener {
                     onEventoClick(evento)
                 }
             }
+        }
+
+        private fun calcularPromediosCalidadAire(evento: Evento): String {
+            if (evento.registrosCalidadAire.isEmpty()) {
+                return "Sin datos de calidad del aire"
+            }
+
+            val registrosPorHora = mutableMapOf<String, com.thermal.monitoring.data.remote.CalidadAire>()
+
+            evento.registrosCalidadAire.forEach { registro ->
+                val hora = registro.horaMedicion?.substringBefore(".")?.substringAfter("T") ?: ""
+                if (hora.isNotEmpty() && !registrosPorHora.containsKey(hora)) {
+                    registrosPorHora[hora] = registro
+                }
+            }
+
+            val registrosUnicos = registrosPorHora.values.toList()
+
+            val pm10Values = registrosUnicos.mapNotNull { it.pm10 }
+            val pm2p5Values = registrosUnicos.mapNotNull { it.pm2p5 }
+            val pm1p0Values = registrosUnicos.mapNotNull { it.pm1p0 }
+
+            val promedioPm10 = if (pm10Values.isNotEmpty()) pm10Values.average() else null
+            val promedioPm2p5 = if (pm2p5Values.isNotEmpty()) pm2p5Values.average() else null
+            val promedioPm1p0 = if (pm1p0Values.isNotEmpty()) pm1p0Values.average() else null
+
+            return buildString {
+                promedioPm10?.let { append("PM10: %.1f ug/m3".format(it)) }
+                if (promedioPm10 != null && (promedioPm2p5 != null || promedioPm1p0 != null)) append(" | ")
+                promedioPm2p5?.let { append("PM2.5: %.1f ug/m3".format(it)) }
+                if (promedioPm2p5 != null && promedioPm1p0 != null) append(" | ")
+                promedioPm1p0?.let { append("PM1.0: %.1f ug/m3".format(it)) }
+            }.takeIf { it.isNotEmpty() } ?: "Sin datos suficientes"
         }
     }
 

@@ -90,6 +90,9 @@ dependencies {
     // SwipeRefreshLayout
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
+    // ViewPager2 para galería de imágenes
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+
 
     // Testing
     testImplementation("junit:junit:4.13.2")

@@ -9,11 +9,15 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.thermal.monitoring.MainActivity
 import com.thermal.monitoring.databinding.FragmentDashboardOperadorBinding
+import com.thermal.monitoring.presentation.eventos.DetalleEventoFragment
 import com.thermal.monitoring.presentation.eventos.EventoAdapter
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.SimpleDateFormat
+import java.util.*
 
 @AndroidEntryPoint
 class DashboardOperadorFragment : Fragment() {
@@ -43,13 +47,7 @@ class DashboardOperadorFragment : Fragment() {
 
     private fun setupRecyclerView() {
         eventoAdapter = EventoAdapter { evento ->
-            // Click en un evento
-            Toast.makeText(
-                requireContext(),
-                "Evento #${evento.eventoId} - ${evento.estatus}",
-                Toast.LENGTH_SHORT
-            ).show()
-            // TODO: Navegar al detalle del evento
+            navegarADetalle(evento.eventoId)
         }
 
         binding.rvEventos.apply {
@@ -65,20 +63,21 @@ class DashboardOperadorFragment : Fragment() {
 
         binding.btnLogout.setOnClickListener {
             viewModel.logout()
-            // Reiniciar la actividad para volver al login
             val intent = Intent(requireContext(), MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
 
+        binding.btnSeleccionarFecha.setOnClickListener {
+            mostrarDatePicker()
+        }
+
         binding.btnEventosPendientes.setOnClickListener {
             Toast.makeText(requireContext(), "Filtrando pendientes...", Toast.LENGTH_SHORT).show()
-            // TODO: Implementar filtro de pendientes
         }
 
         binding.btnHistorial.setOnClickListener {
             Toast.makeText(requireContext(), "Ver mi historial...", Toast.LENGTH_SHORT).show()
-            // TODO: Implementar historial personal
         }
     }
 
@@ -94,6 +93,8 @@ class DashboardOperadorFragment : Fragment() {
                     binding.swipeRefresh.isRefreshing = false
 
                     val eventos = resource.data ?: emptyList()
+
+                    binding.tvTituloRecientes.text = "Eventos recientes (${eventos.size})"
 
                     if (eventos.isEmpty()) {
                         binding.layoutVacio.visibility = View.VISIBLE
@@ -115,10 +116,35 @@ class DashboardOperadorFragment : Fragment() {
                 }
             }
         }
+    }
 
-        viewModel.eventosPendientes.observe(viewLifecycleOwner) { count ->
-            binding.tvContadorPendientes.text = count.toString()
+    private fun mostrarDatePicker() {
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText("Seleccionar fecha")
+            .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+            .build()
+
+        datePicker.addOnPositiveButtonClickListener { selection ->
+            val fecha = Date(selection)
+            val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val formatoMostrar = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+            val fechaApi = formatoApi.format(fecha)
+            val fechaMostrar = formatoMostrar.format(fecha)
+
+            binding.btnSeleccionarFecha.text = fechaMostrar
+            viewModel.cargarEventosPorFecha(fechaApi)
         }
+
+        datePicker.show(parentFragmentManager, "DATE_PICKER")
+    }
+
+    private fun navegarADetalle(eventoId: Int) {
+        val fragment = DetalleEventoFragment.newInstance(eventoId)
+        parentFragmentManager.beginTransaction()
+            .replace(com.thermal.monitoring.R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     override fun onDestroyView() {

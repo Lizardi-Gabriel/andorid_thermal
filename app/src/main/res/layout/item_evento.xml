@@ -9,25 +9,23 @@
     app:cardElevation="2dp"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?attr/selectableItemBackground">
+    android:foreground="@color/amarillo">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <!-- Imagen preview -->
         <ImageView
             android:id="@+id/ivPreview"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:scaleType="centerCrop"
-            android:background="@android:color/darker_gray"
+            android:background="@color/gris"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:src="@android:drawable/ic_menu_gallery"/>
 
-        <!-- Información del evento -->
         <TextView
             android:id="@+id/tvFecha"
             android:layout_width="0dp"
@@ -41,14 +39,13 @@
             app:layout_constraintEnd_toStartOf="@id/chipEstatus"
             tools:text="27/10/2025"/>
 
-        <!-- Chip de estatus -->
         <com.google.android.material.chip.Chip
             android:id="@+id/chipEstatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Pendiente"
             android:textSize="12sp"
-            app:chipBackgroundColor="@color/teal_200"
+            app:chipBackgroundColor="@color/evento_confirmado"
             app:layout_constraintTop_toTopOf="@id/ivPreview"
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="Pendiente"/>
@@ -59,24 +56,28 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textSize="12sp"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/gris"
             app:layout_constraintTop_toBottomOf="@id/tvFecha"
             app:layout_constraintStart_toStartOf="@id/tvFecha"
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="14:30 - 15:45"/>
 
         <TextView
-            android:id="@+id/tvDetecciones"
-            android:layout_width="0dp"
+            android:id="@+id/tvMaxDetecciones"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textSize="12sp"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="@color/white"
             android:textStyle="bold"
             app:layout_constraintTop_toBottomOf="@id/tvHora"
             app:layout_constraintStart_toStartOf="@id/tvFecha"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:text="🔥 5 detecciones"/>
+            tools:text="Max fumadores: 5"
+            android:paddingHorizontal="10dp"
+            android:background="@drawable/bg_max_fumadores"
+
+
+            />
 
         <TextView
             android:id="@+id/tvDescripcion"
@@ -86,12 +87,23 @@
             android:textSize="12sp"
             android:maxLines="2"
             android:ellipsize="end"
-            android:textColor="@android:color/darker_gray"
-            app:layout_constraintTop_toBottomOf="@id/tvDetecciones"
+            android:textColor="@color/gris"
+            app:layout_constraintTop_toBottomOf="@id/tvMaxDetecciones"
             app:layout_constraintStart_toStartOf="@id/tvFecha"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/ivPreview"
-            tools:text="Descripción del evento que puede ser larga y se corta en dos líneas máximo"/>
+            tools:text="Descripcion del evento"/>
+
+        <TextView
+            android:id="@+id/tvCalidadAire"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="11sp"
+            android:textColor="@color/gris"
+            app:layout_constraintTop_toBottomOf="@id/tvDescripcion"
+            app:layout_constraintStart_toStartOf="@id/tvFecha"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="PM10: 45.2 | PM2.5: 23.1 | PM1.0: 12.5"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
