@@ -93,3 +93,4 @@ connected-device.txt
 
 # Kotlin
 *.kt.swp
+/.idea
