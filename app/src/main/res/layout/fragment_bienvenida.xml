@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="15dp">
+
+    <ImageView
+        android:id="@+id/ivCigarro1"
+        android:layout_width="190dp"
+        android:layout_height="130dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="5dp"
+        android:rotation="0"
+        android:src="@drawable/ic_cigar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/black" />
+
+    <ImageView
+        android:id="@+id/ivCigarro2"
+        android:layout_width="190dp"
+        android:layout_height="130dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="120dp"
+        android:src="@drawable/ic_cigar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/black" />
+
+    <ImageView
+        android:id="@+id/ivCigarro3"
+        android:layout_width="190dp"
+        android:layout_height="130dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="100dp"
+        android:rotation="0"
+        android:src="@drawable/ic_cigar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivCigarro1"
+        app:tint="@color/evento_descartado" />
+
+    <TextView
+        android:id="@+id/tvBienvenido"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bienvenido a"
+        android:textSize="24sp"
+        android:textColor="@color/black"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/ivCigarro3"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="8dp"/>
+
+    <!-- THERMAL -->
+    <TextView
+        android:id="@+id/tvThermal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="THERMAL"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@color/amarillo"
+        app:layout_constraintTop_toBottomOf="@id/tvBienvenido"
+        app:layout_constraintStart_toStartOf="@id/tvBienvenido"/>
+
+    <!-- MONITOR! -->
+    <TextView
+        android:id="@+id/tvMonitor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="MONITOR!"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@color/amarillo"
+        app:layout_constraintTop_toBottomOf="@id/tvThermal"
+        app:layout_constraintStart_toStartOf="@id/tvThermal"/>
+
+    <!-- Botón Iniciar Sesión -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLogin"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:text="Iniciar Sesion"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:backgroundTint="@color/black"
+        app:cornerRadius="25dp"
+        android:layout_marginBottom="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnRegistro"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textAllCaps="false"
+        />
+
+    <!-- Botón Registrarse -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnRegistro"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:text="Registrate"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        app:cornerRadius="25dp"
+
+        android:layout_marginBottom="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:strokeColor="@color/black"
+        app:strokeWidth="2dp"
+        android:textAllCaps="false"
+
+
+        />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

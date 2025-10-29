@@ -47,6 +47,11 @@ class LoginFragment : Fragment() {
         binding.tvRegistro.setOnClickListener {
             navegarARegistro()
         }
+
+        binding.ivBack.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
     }
 
     private fun setupObservers() {
@@ -91,7 +96,7 @@ class LoginFragment : Fragment() {
     private fun navegarARegistro() {
         parentFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, RegistroFragment())
-            .addToBackStack(null)
+            .addToBackStack("registro")
             .commit()
     }
 

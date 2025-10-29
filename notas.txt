@@ -9,3 +9,7 @@ Logs del Sistema (Admin)
 Notificaciones Push
 
 
+modulo isla: si se vence el token, volver a iniciar sesion
+
+
+

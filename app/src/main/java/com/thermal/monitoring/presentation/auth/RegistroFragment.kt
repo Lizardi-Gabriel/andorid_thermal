@@ -37,6 +37,10 @@ class RegistroFragment : Fragment() {
     }
 
     private fun setupListeners() {
+        binding.ivBack.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
         binding.btnRegistrar.setOnClickListener {
             val username = binding.etUsername.text.toString().trim()
             val email = binding.etEmail.text.toString().trim()

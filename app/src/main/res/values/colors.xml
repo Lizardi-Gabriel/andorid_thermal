@@ -8,7 +8,7 @@
     <color name="gris">#898989</color>
 
     <!-- Estados de eventos -->
-    <color name="evento_pendiente">#9C27B0</color>
+    <color name="evento_pendiente">#FF00A4</color>
     <color name="evento_confirmado">#00C307</color>
     <color name="evento_descartado">#FFF44336</color>
 

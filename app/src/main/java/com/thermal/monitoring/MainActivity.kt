@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.thermal.monitoring.data.local.TokenManager
+import com.thermal.monitoring.presentation.auth.BienvenidaFragment
 import com.thermal.monitoring.presentation.auth.LoginFragment
 import com.thermal.monitoring.presentation.dashboard.DashboardOperadorFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,7 +51,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun mostrarLogin() {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, LoginFragment())
+            .replace(R.id.fragment_container, BienvenidaFragment())
             .commit()
     }
 
