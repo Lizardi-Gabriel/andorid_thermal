@@ -5,19 +5,28 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.thermal.monitoring.MainActivity
+import com.thermal.monitoring.R
+import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.databinding.FragmentDashboardOperadorBinding
 import com.thermal.monitoring.presentation.eventos.DetalleEventoFragment
 import com.thermal.monitoring.presentation.eventos.EventoAdapter
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class DashboardOperadorFragment : Fragment() {
@@ -27,6 +36,9 @@ class DashboardOperadorFragment : Fragment() {
 
     private val viewModel: DashboardOperadorViewModel by viewModels()
     private lateinit var eventoAdapter: EventoAdapter
+
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,9 +52,50 @@ class DashboardOperadorFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupDrawer()
         setupRecyclerView()
         setupListeners()
         setupObservers()
+        cargarDatosUsuario()
+    }
+
+    private fun setupDrawer() {
+        binding.toolbar.setNavigationOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        binding.navigationView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_dashboard -> {
+                    viewModel.cargarEventos()
+                }
+                R.id.nav_pendientes -> {
+                    Toast.makeText(requireContext(), "Ver Pendientes", Toast.LENGTH_SHORT).show()
+                }
+                R.id.nav_historial -> {
+                    Toast.makeText(requireContext(), "Mi Historial", Toast.LENGTH_SHORT).show()
+                }
+                R.id.nav_perfil -> {
+                    Toast.makeText(requireContext(), "Mi Perfil", Toast.LENGTH_SHORT).show()
+                }
+                R.id.nav_logout -> {
+                    cerrarSesion()
+                }
+            }
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+            true
+        }
+    }
+
+    private fun cargarDatosUsuario() {
+        lifecycleScope.launch {
+            val username = tokenManager.obtenerUsername().first()
+            val rol = tokenManager.obtenerRol().first()
+
+            val headerView = binding.navigationView.getHeaderView(0)
+            headerView.findViewById<TextView>(R.id.tvNombreUsuario).text = username ?: "Usuario"
+            headerView.findViewById<TextView>(R.id.tvRolUsuario).text = rol ?: "Operador"
+        }
     }
 
     private fun setupRecyclerView() {
@@ -61,23 +114,8 @@ class DashboardOperadorFragment : Fragment() {
             viewModel.cargarEventos()
         }
 
-        binding.btnLogout.setOnClickListener {
-            viewModel.logout()
-            val intent = Intent(requireContext(), MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-        }
-
         binding.btnSeleccionarFecha.setOnClickListener {
             mostrarDatePicker()
-        }
-
-        binding.btnEventosPendientes.setOnClickListener {
-            Toast.makeText(requireContext(), "Filtrando pendientes...", Toast.LENGTH_SHORT).show()
-        }
-
-        binding.btnHistorial.setOnClickListener {
-            Toast.makeText(requireContext(), "Ver mi historial...", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -142,9 +180,16 @@ class DashboardOperadorFragment : Fragment() {
     private fun navegarADetalle(eventoId: Int) {
         val fragment = DetalleEventoFragment.newInstance(eventoId)
         parentFragmentManager.beginTransaction()
-            .replace(com.thermal.monitoring.R.id.fragment_container, fragment)
+            .replace(R.id.fragment_container, fragment)
             .addToBackStack(null)
             .commit()
+    }
+
+    private fun cerrarSesion() {
+        viewModel.logout()
+        val intent = Intent(requireContext(), MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
     }
 
     override fun onDestroyView() {

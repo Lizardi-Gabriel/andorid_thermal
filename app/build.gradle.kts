@@ -93,6 +93,8 @@ dependencies {
     // ViewPager2 para galería de imágenes
     implementation("androidx.viewpager2:viewpager2:1.0.0")
 
+    implementation("androidx.drawerlayout:drawerlayout:1.2.0")
+
 
     // Testing
     testImplementation("junit:junit:4.13.2")

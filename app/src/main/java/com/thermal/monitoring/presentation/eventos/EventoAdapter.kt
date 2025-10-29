@@ -25,7 +25,7 @@ class EventoAdapter(
     }
 
     override fun onBindViewHolder(holder: EventoViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), position + 1)
     }
 
     class EventoViewHolder(
@@ -33,9 +33,12 @@ class EventoAdapter(
         private val onEventoClick: (Evento) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(evento: Evento) {
+
+        fun bind(evento: Evento, numeroEvento: Int) {
             binding.apply {
-                tvFecha.text = evento.fechaEvento
+                // Agregar numero de evento
+                tvFecha.text = "${evento.fechaEvento}"
+                // No $numeroEvento
 
                 if (evento.imagenes.isNotEmpty()) {
                     val horaInicio = evento.imagenes.first().horaSubida.substringAfter("T").substringBefore(".")
@@ -55,7 +58,7 @@ class EventoAdapter(
                 }
 
                 val maxDetecciones = evento.imagenes.maxOfOrNull { it.detecciones.size } ?: 0
-                tvMaxDetecciones.text = "Max fumadores: $maxDetecciones"
+                tvMaxDetecciones.text = "Max: $maxDetecciones"
 
                 tvDescripcion.text = evento.descripcion ?: "Sin descripcion"
 

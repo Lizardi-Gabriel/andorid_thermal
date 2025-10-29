@@ -32,7 +32,7 @@ class DashboardOperadorViewModel @Inject constructor(
     fun cargarEventos() {
         viewModelScope.launch {
             _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventos(limit = 50)
+            val result = eventoRepository.listarEventos(limit = 500)
             _eventosState.value = result
 
             if (result is Resource.Success) {

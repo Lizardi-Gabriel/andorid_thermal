@@ -15,9 +15,9 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/amarillo"
+            android:background="@color/white"
             app:navigationIcon="@drawable/ic_back"
-            app:title="Detalle del Evento"
+            app:title="Evento"
             app:titleTextColor="@color/black" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -33,7 +33,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Información básica -->
+            <!-- Detalles del evento -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -108,7 +108,33 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Descripción -->
+            <!-- Imagenes del evento -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Imágenes del Evento"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/viewPagerImagenes"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvContadorImagenes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1 / 5"
+                android:textAlignment="center"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Descripcion -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -140,33 +166,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Galería de imágenes -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Imágenes del Evento"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_marginBottom="8dp"/>
-
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/viewPagerImagenes"
-                android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:id="@+id/tvContadorImagenes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="1 / 5"
-                android:textAlignment="center"
-                android:textSize="14sp"
-                android:textColor="@android:color/darker_gray"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Calidad del Aire -->
+            <!-- Calidad del aire -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -198,7 +198,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Botones de acción (solo para operadores con eventos pendientes) -->
+            <!-- Botones de accion -->
             <LinearLayout
                 android:id="@+id/layoutBotonesAccion"
                 android:layout_width="match_parent"
@@ -228,7 +228,7 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ProgressBar -->
+    <!-- Indicador de carga -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
