@@ -14,6 +14,9 @@ import com.thermal.monitoring.data.remote.Evento
 import com.thermal.monitoring.databinding.FragmentDetalleEventoBinding
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.SimpleDateFormat
+import java.util.*
+
 
 @AndroidEntryPoint
 class DetalleEventoFragment : Fragment() {
@@ -125,8 +128,8 @@ class DetalleEventoFragment : Fragment() {
             tvFecha.text = "Fecha: ${evento.fechaEvento}"
 
             if (evento.imagenes.isNotEmpty()) {
-                val horaInicio = evento.imagenes.first().horaSubida.substringAfter("T").substringBefore(".")
-                val horaFin = evento.imagenes.last().horaSubida.substringAfter("T").substringBefore(".")
+                val horaInicio = convertirAHoraMexico(evento.imagenes.first().horaSubida)
+                val horaFin = convertirAHoraMexico(evento.imagenes.last().horaSubida)
                 tvHorario.text = "Horario: $horaInicio - $horaFin"
             } else {
                 tvHorario.text = "Horario: Sin horario"
@@ -260,6 +263,25 @@ class DetalleEventoFragment : Fragment() {
             .setNegativeButton("Cancelar", null)
             .show()
     }
+
+
+    private fun convertirAHoraMexico(timestamp: String): String {
+        return try {
+            val formatoEntrada = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            formatoEntrada.timeZone = TimeZone.getTimeZone("UTC")
+
+            val fecha = formatoEntrada.parse(timestamp)
+
+            val formatoSalida = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            formatoSalida.timeZone = TimeZone.getTimeZone("America/Mexico_City")
+
+            formatoSalida.format(fecha ?: Date())
+        } catch (e: Exception) {
+            timestamp.substringAfter("T").substringBefore(".")
+        }
+    }
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()

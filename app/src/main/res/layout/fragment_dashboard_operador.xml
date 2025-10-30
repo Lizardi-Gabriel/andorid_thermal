@@ -61,7 +61,7 @@
                         android:id="@+id/btnSeleccionarFecha"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="HOY"
+                        android:text="Seleccionar Fecha"
                         android:textColor="@color/black"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                         android:textSize="12sp"/>

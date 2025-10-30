@@ -10,6 +10,10 @@ import com.thermal.monitoring.R
 import com.thermal.monitoring.data.remote.EstatusEventoEnum
 import com.thermal.monitoring.data.remote.Evento
 import com.thermal.monitoring.databinding.ItemEventoBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class EventoAdapter(
     private val onEventoClick: (Evento) -> Unit
@@ -41,11 +45,11 @@ class EventoAdapter(
                 // No $numeroEvento
 
                 if (evento.imagenes.isNotEmpty()) {
-                    val horaInicio = evento.imagenes.first().horaSubida.substringAfter("T").substringBefore(".")
-                    val horaFin = evento.imagenes.last().horaSubida.substringAfter("T").substringBefore(".")
+                    val horaInicio = convertirUTCaMexico(evento.imagenes.first().horaSubida)
+                    val horaFin = convertirUTCaMexico(evento.imagenes.last().horaSubida)
                     tvHora.text = "$horaInicio - $horaFin"
 
-                    val imagenPreview = evento.imagenes.maxByOrNull { it.detecciones.size }
+                    val imagenPreview = evento.imagenes.maxByOrNull { it.detecciones.size } ?: evento.imagenes.firstOrNull()
                     imagenPreview?.let {
                         ivPreview.load(it.rutaImagen) {
                             crossfade(true)
@@ -55,6 +59,10 @@ class EventoAdapter(
                     }
                 } else {
                     tvHora.text = "Sin imagenes"
+                    ivPreview.load(R.drawable.ic_launcher_background) {
+                        error(R.drawable.ic_launcher_background)
+                    }
+
                 }
 
                 val maxDetecciones = evento.imagenes.maxOfOrNull { it.detecciones.size } ?: 0
@@ -116,6 +124,22 @@ class EventoAdapter(
                 if (promedioPm2p5 != null && promedioPm1p0 != null) append(" | ")
                 promedioPm1p0?.let { append("PM1.0: %.1f ug/m3".format(it)) }
             }.takeIf { it.isNotEmpty() } ?: "Sin datos suficientes"
+        }
+
+        private fun convertirUTCaMexico(fechaUTC: String): String {
+            return try {
+                val formatoEntrada = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                formatoEntrada.timeZone = TimeZone.getTimeZone("UTC")
+
+                val fecha = formatoEntrada.parse(fechaUTC)
+
+                val formatoSalida = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                formatoSalida.timeZone = TimeZone.getTimeZone("America/Mexico_City")
+
+                formatoSalida.format(fecha ?: Date())
+            } catch (e: Exception) {
+                "00:00:00"
+            }
         }
     }
 

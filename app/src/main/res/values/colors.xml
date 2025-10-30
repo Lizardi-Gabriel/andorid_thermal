@@ -5,12 +5,15 @@
     <color name="white">#FFFFFFFF</color>
     <color name="rojo">#F20505</color>
     <color name="amarillo">#F2B705</color>
+    <color name="moradoTermico">#4A107B</color>
+
     <color name="gris">#898989</color>
 
     <!-- Estados de eventos -->
     <color name="evento_pendiente">@color/gris</color>
     <color name="evento_confirmado">#004D40</color>
     <color name="evento_descartado">#B71C1C</color>
+
 
 
 </resources>

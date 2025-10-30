@@ -27,6 +27,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+import java.util.TimeZone
+
 
 @AndroidEntryPoint
 class DashboardOperadorFragment : Fragment() {
@@ -163,10 +165,14 @@ class DashboardOperadorFragment : Fragment() {
             .build()
 
         datePicker.addOnPositiveButtonClickListener { selection ->
-            val fecha = Date(selection)
             val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val formatoMostrar = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
+            // Usar UTC para evitar problemas de zona horaria
+            formatoApi.timeZone = TimeZone.getTimeZone("UTC")
+            formatoMostrar.timeZone = TimeZone.getTimeZone("UTC")
+
+            val fecha = Date(selection)
             val fechaApi = formatoApi.format(fecha)
             val fechaMostrar = formatoMostrar.format(fecha)
 
