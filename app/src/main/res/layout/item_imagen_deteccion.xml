@@ -9,7 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitCenter"
-        android:background="@android:color/black"/>
+        android:adjustViewBounds="true"
+        android:background="@color/black"/>
 
     <!-- Canvas para dibujar detecciones -->
     <com.thermal.monitoring.presentation.eventos.DeteccionCanvasView

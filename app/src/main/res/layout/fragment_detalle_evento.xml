@@ -121,8 +121,7 @@
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/viewPagerImagenes"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:layout_marginBottom="8dp" />
+                android:layout_height="250dp" />
 
             <TextView
                 android:id="@+id/tvContadorImagenes"

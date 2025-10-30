@@ -1,5 +1,6 @@
 package com.thermal.monitoring.presentation.eventos
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,25 +36,27 @@ class ImagenDeteccionAdapter(
             binding.progressBar.visibility = View.VISIBLE
             binding.canvasDetecciones.clear()
 
-            // Cargar imagen con Coil
             binding.ivImagen.load(imagen.rutaImagen) {
                 crossfade(true)
                 listener(
                     onSuccess = { _, result ->
                         binding.progressBar.visibility = View.GONE
 
-                        // Obtener dimensiones de la imagen cargada
                         val drawable = result.drawable
                         val imgWidth = drawable.intrinsicWidth
                         val imgHeight = drawable.intrinsicHeight
 
-                        // Dibujar detecciones
-                        if (imagen.detecciones.isNotEmpty()) {
-                            binding.canvasDetecciones.setDetecciones(
-                                imagen.detecciones,
-                                imgWidth,
-                                imgHeight
-                            )
+                        // Esperar a que el ImageView tenga sus dimensiones finales
+                        binding.ivImagen.post {
+                            if (imagen.detecciones.isNotEmpty()) {
+                                binding.canvasDetecciones.setDetecciones(
+                                    imagen.detecciones,
+                                    imgWidth,
+                                    imgHeight,
+                                    binding.ivImagen.width,
+                                    binding.ivImagen.height
+                                )
+                            }
                         }
                     },
                     onError = { _, _ ->

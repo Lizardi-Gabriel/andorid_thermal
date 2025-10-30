@@ -118,11 +118,12 @@ class EventoAdapter(
             val promedioPm1p0 = if (pm1p0Values.isNotEmpty()) pm1p0Values.average() else null
 
             return buildString {
-                promedioPm10?.let { append("PM10: %.1f ug/m3".format(it)) }
+                append("Calidad del aire: (ug/m3)\n")
+                promedioPm10?.let { append("PM 10: %.1f ".format(it)) }
                 if (promedioPm10 != null && (promedioPm2p5 != null || promedioPm1p0 != null)) append(" | ")
-                promedioPm2p5?.let { append("PM2.5: %.1f ug/m3".format(it)) }
+                promedioPm2p5?.let { append("PM 2.5: %.1f ".format(it)) }
                 if (promedioPm2p5 != null && promedioPm1p0 != null) append(" | ")
-                promedioPm1p0?.let { append("PM1.0: %.1f ug/m3".format(it)) }
+                promedioPm1p0?.let { append("PM 1: %.1f ".format(it)) }
             }.takeIf { it.isNotEmpty() } ?: "Sin datos suficientes"
         }
 

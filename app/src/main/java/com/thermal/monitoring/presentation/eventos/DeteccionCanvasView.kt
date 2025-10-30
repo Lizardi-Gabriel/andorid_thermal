@@ -2,11 +2,11 @@ package com.thermal.monitoring.presentation.eventos
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import com.thermal.monitoring.R
 import com.thermal.monitoring.data.remote.Deteccion
 
 class DeteccionCanvasView @JvmOverloads constructor(
@@ -16,14 +16,14 @@ class DeteccionCanvasView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private val paint = Paint().apply {
-        color = Color.GREEN
+        color = context.getColor(R.color.deteccion_box)
         style = Paint.Style.STROKE
         strokeWidth = 5f
         isAntiAlias = true
     }
 
     private val textPaint = Paint().apply {
-        color = Color.GREEN
+        color = context.getColor(R.color.deteccion_box)
         textSize = 40f
         style = Paint.Style.FILL
         isAntiAlias = true
@@ -32,57 +32,55 @@ class DeteccionCanvasView @JvmOverloads constructor(
     private var detecciones: List<Deteccion> = emptyList()
     private var imageWidth: Int = 0
     private var imageHeight: Int = 0
-    private var viewWidth: Int = 0
-    private var viewHeight: Int = 0
+    private var imageViewWidth: Int = 0
+    private var imageViewHeight: Int = 0
 
-    fun setDetecciones(detecciones: List<Deteccion>, imgWidth: Int, imgHeight: Int) {
+    fun setDetecciones(
+        detecciones: List<Deteccion>,
+        imgWidth: Int,
+        imgHeight: Int,
+        ivWidth: Int,
+        ivHeight: Int
+    ) {
         this.detecciones = detecciones
         this.imageWidth = imgWidth
         this.imageHeight = imgHeight
-        invalidate()
-    }
-
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        viewWidth = w
-        viewHeight = h
+        this.imageViewWidth = ivWidth
+        this.imageViewHeight = ivHeight
         invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        if (imageWidth == 0 || imageHeight == 0 || detecciones.isEmpty()) return
+        if (imageWidth == 0 || imageHeight == 0 || detecciones.isEmpty() ||
+            imageViewWidth == 0 || imageViewHeight == 0) return
 
-        // Calcular el factor de escala para ajustar las coordenadas
-        val scaleX = viewWidth.toFloat() / imageWidth.toFloat()
-        val scaleY = viewHeight.toFloat() / imageHeight.toFloat()
-
-        // Usar el menor factor de escala para mantener el aspect ratio
+        // Calcular escala manteniendo aspect ratio (fitCenter)
+        val scaleX = imageViewWidth.toFloat() / imageWidth.toFloat()
+        val scaleY = imageViewHeight.toFloat() / imageHeight.toFloat()
         val scale = minOf(scaleX, scaleY)
 
-        // Calcular el offset para centrar la imagen
+        // Calcular dimensiones reales de la imagen renderizada
         val scaledWidth = imageWidth * scale
         val scaledHeight = imageHeight * scale
-        val offsetX = (viewWidth - scaledWidth) / 2
-        val offsetY = (viewHeight - scaledHeight) / 2
+
+        // Calcular offset para centrar
+        val offsetX = (imageViewWidth - scaledWidth) / 2f
+        val offsetY = (imageViewHeight - scaledHeight) / 2f
 
         // Dibujar cada detección
-        detecciones.forEachIndexed { index, deteccion ->
-            // Escalar y ajustar coordenadas
+        detecciones.forEach { deteccion ->
             val left = deteccion.x1 * scale + offsetX
             val top = deteccion.y1 * scale + offsetY
             val right = deteccion.x2 * scale + offsetX
             val bottom = deteccion.y2 * scale + offsetY
 
             val rect = RectF(left, top, right, bottom)
-
-            // Dibujar rectángulo
             canvas.drawRect(rect, paint)
 
-            // Dibujar etiqueta con confianza
             val label = "${(deteccion.confianza * 100).toInt()}%"
-            canvas.drawText(label, left, top - 10, textPaint)
+            canvas.drawText(label, left, maxOf(top - 10, textPaint.textSize), textPaint)
         }
     }
 

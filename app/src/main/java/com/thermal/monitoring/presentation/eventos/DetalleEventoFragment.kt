@@ -218,13 +218,13 @@ class DetalleEventoFragment : Fragment() {
             append("Promedio de calidad del aire durante este evento:\n\n")
 
             promedioPm10?.let {
-                append("PM10: %.2f μg/m3\n".format(it))
+                append("PM 10: %.2f μg/m3\n".format(it))
             }
             promedioPm2p5?.let {
-                append("PM2.5: %.2f μg/m3\n".format(it))
+                append("PM 2.5: %.2f μg/m3\n".format(it))
             }
             promedioPm1p0?.let {
-                append("PM1.0: %.2f μg/m3\n".format(it))
+                append("PM 1: %.2f μg/m3\n".format(it))
             }
 
             if (promedioPm10 == null && promedioPm2p5 == null && promedioPm1p0 == null) {
