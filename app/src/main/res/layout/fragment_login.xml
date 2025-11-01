@@ -102,7 +102,7 @@
                         android:id="@+id/etUsername"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="example@correo.com"
+                        android:hint="Nombre de usuario"
                         android:inputType="textEmailAddress"
                         android:maxLines="1"
                         android:textColorHint="#BDBDBD"
