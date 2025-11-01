@@ -38,24 +38,23 @@ class ImagenDeteccionAdapter(
 
             binding.ivImagen.load(imagen.rutaImagen) {
                 crossfade(true)
+                // NO redimensionar la imagen, cargarla en su tamaño original
+                size(coil.size.Size.ORIGINAL)
                 listener(
                     onSuccess = { _, result ->
                         binding.progressBar.visibility = View.GONE
 
-                        val drawable = result.drawable
-                        val imgWidth = drawable.intrinsicWidth
-                        val imgHeight = drawable.intrinsicHeight
+                        // Obtener dimensiones REALES de la imagen cargada
+                        val realWidth = result.drawable.intrinsicWidth
+                        val realHeight = result.drawable.intrinsicHeight
 
-                        // Esperar a que el ImageView tenga sus dimensiones finales
                         binding.ivImagen.post {
                             if (imagen.detecciones.isNotEmpty()) {
-                                binding.canvasDetecciones.setDetecciones(
-                                    imagen.detecciones,
-                                    imgWidth,
-                                    imgHeight,
-                                    binding.ivImagen.width,
-                                    binding.ivImagen.height
-                                )
+                                // Pasar referencia del ImageView al canvas
+                                binding.canvasDetecciones.setImageView(binding.ivImagen)
+
+                                // Pasar detecciones al canvas
+                                binding.canvasDetecciones.setDetecciones(imagen.detecciones)
                             }
                         }
                     },
@@ -65,5 +64,6 @@ class ImagenDeteccionAdapter(
                 )
             }
         }
+
     }
 }

@@ -2,10 +2,12 @@ package com.thermal.monitoring.presentation.eventos
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import android.widget.ImageView
 import com.thermal.monitoring.R
 import com.thermal.monitoring.data.remote.Deteccion
 
@@ -30,62 +32,78 @@ class DeteccionCanvasView @JvmOverloads constructor(
     }
 
     private var detecciones: List<Deteccion> = emptyList()
-    private var imageWidth: Int = 0
-    private var imageHeight: Int = 0
-    private var imageViewWidth: Int = 0
-    private var imageViewHeight: Int = 0
+    private var imageView: ImageView? = null
+    private val rectF = RectF()
 
-    fun setDetecciones(
-        detecciones: List<Deteccion>,
-        imgWidth: Int,
-        imgHeight: Int,
-        ivWidth: Int,
-        ivHeight: Int
-    ) {
+    fun setImageView(imageView: ImageView) {
+        this.imageView = imageView
+    }
+
+    fun setDetecciones(detecciones: List<Deteccion>) {
         this.detecciones = detecciones
-        this.imageWidth = imgWidth
-        this.imageHeight = imgHeight
-        this.imageViewWidth = ivWidth
-        this.imageViewHeight = ivHeight
         invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        if (imageWidth == 0 || imageHeight == 0 || detecciones.isEmpty() ||
-            imageViewWidth == 0 || imageViewHeight == 0) return
+        if (detecciones.isEmpty() || imageView == null) return
 
-        // Calcular escala manteniendo aspect ratio (fitCenter)
-        val scaleX = imageViewWidth.toFloat() / imageWidth.toFloat()
-        val scaleY = imageViewHeight.toFloat() / imageHeight.toFloat()
-        val scale = minOf(scaleX, scaleY)
+        val drawable = imageView?.drawable ?: return
 
-        // Calcular dimensiones reales de la imagen renderizada
-        val scaledWidth = imageWidth * scale
-        val scaledHeight = imageHeight * scale
+        // Dimensiones intrinsecas de la imagen mostrada
+        val imageWidth = drawable.intrinsicWidth.toFloat()
+        val imageHeight = drawable.intrinsicHeight.toFloat()
 
-        // Calcular offset para centrar
-        val offsetX = (imageViewWidth - scaledWidth) / 2f
-        val offsetY = (imageViewHeight - scaledHeight) / 2f
+        if (imageWidth <= 0 || imageHeight <= 0) return
 
-        // Dibujar cada detección
+        // Dimensiones del ImageView
+        val viewWidth = imageView?.width?.toFloat() ?: 0f
+        val viewHeight = imageView?.height?.toFloat() ?: 0f
+
+        if (viewWidth <= 0 || viewHeight <= 0) return
+
+        // Encontrar dimensiones maximas en las coordenadas de deteccion
+        val maxX = detecciones.maxOfOrNull { maxOf(it.x1.toFloat(), it.x2.toFloat()) } ?: imageWidth
+        val maxY = detecciones.maxOfOrNull { maxOf(it.y1.toFloat(), it.y2.toFloat()) } ?: imageHeight
+
+        // Calcular factor de escala de coordenadas de deteccion a imagen mostrada
+        val coordScaleX = if (maxX > imageWidth) imageWidth / maxX else 1f
+        val coordScaleY = if (maxY > imageHeight) imageHeight / maxY else 1f
+        val coordScale = minOf(coordScaleX, coordScaleY)
+
+        // Calcular el escalado y offset que aplica fitCenter para mostrar en el view
+        val viewScale = minOf(viewWidth / imageWidth, viewHeight / imageHeight)
+        val scaledWidth = imageWidth * viewScale
+        val scaledHeight = imageHeight * viewScale
+
+        // Offset para centrar la imagen en el view
+        val offsetX = (viewWidth - scaledWidth) / 2f
+        val offsetY = (viewHeight - scaledHeight) / 2f
+
+        // Factor de escala total
+        val totalScale = coordScale * viewScale
+
         detecciones.forEach { deteccion ->
-            val left = deteccion.x1 * scale + offsetX
-            val top = deteccion.y1 * scale + offsetY
-            val right = deteccion.x2 * scale + offsetX
-            val bottom = deteccion.y2 * scale + offsetY
+            // Aplicar escala de coordenadas + escala de vista + offset
+            val x1 = deteccion.x1 * totalScale + offsetX
+            val y1 = deteccion.y1 * totalScale + offsetY
+            val x2 = deteccion.x2 * totalScale + offsetX
+            val y2 = deteccion.y2 * totalScale + offsetY
 
-            val rect = RectF(left, top, right, bottom)
-            canvas.drawRect(rect, paint)
+            rectF.set(x1, y1, x2, y2)
+            canvas.drawRect(rectF, paint)
 
+            // Dibujar texto con porcentaje de confianza
             val label = "${(deteccion.confianza * 100).toInt()}%"
-            canvas.drawText(label, left, maxOf(top - 10, textPaint.textSize), textPaint)
+            canvas.drawText(label, rectF.left, maxOf(rectF.top - 10, textPaint.textSize), textPaint)
         }
     }
 
     fun clear() {
         detecciones = emptyList()
+        imageView = null
         invalidate()
     }
+
 }
