@@ -69,16 +69,26 @@ class DashboardOperadorFragment : Fragment() {
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_dashboard -> {
-                    viewModel.cargarEventos()
+                    viewModel.cargarTodos()
+                    binding.toolbar.title = "Galería de Eventos"
                 }
                 R.id.nav_pendientes -> {
-                    Toast.makeText(requireContext(), "Ver Pendientes", Toast.LENGTH_SHORT).show()
+                    viewModel.cargarEventosPendientes()
+                    binding.toolbar.title = "Eventos Pendientes"
                 }
                 R.id.nav_historial -> {
-                    Toast.makeText(requireContext(), "Mi Historial", Toast.LENGTH_SHORT).show()
+                    lifecycleScope.launch {
+                        val userId = tokenManager.obtenerUserId().first()
+                        if (userId != null) {
+                            viewModel.cargarMiHistorial(userId)
+                            binding.toolbar.title = "Mi Historial"
+                        } else {
+                            Toast.makeText(requireContext(), "Error: Usuario no identificado", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
                 R.id.nav_perfil -> {
-                    Toast.makeText(requireContext(), "Mi Perfil", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Mi Perfil - Proximamente", Toast.LENGTH_SHORT).show()
                 }
                 R.id.nav_logout -> {
                     cerrarSesion()
@@ -88,6 +98,7 @@ class DashboardOperadorFragment : Fragment() {
             true
         }
     }
+
 
     private fun cargarDatosUsuario() {
         lifecycleScope.launch {
@@ -177,6 +188,7 @@ class DashboardOperadorFragment : Fragment() {
             val fechaMostrar = formatoMostrar.format(fecha)
 
             binding.btnSeleccionarFecha.text = fechaMostrar
+            binding.toolbar.title = "Eventos del $fechaMostrar"
             viewModel.cargarEventosPorFecha(fechaApi)
         }
 
@@ -202,4 +214,26 @@ class DashboardOperadorFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+
+    override fun onResume() {
+        super.onResume()
+        // Recargar datos cuando regrese del detalle
+        lifecycleScope.launch {
+            when (viewModel.filtroActual.value) {
+                DashboardOperadorViewModel.FiltroEvento.TODOS -> viewModel.cargarEventos()
+                DashboardOperadorViewModel.FiltroEvento.PENDIENTES -> viewModel.cargarEventosPendientes()
+                DashboardOperadorViewModel.FiltroEvento.MI_HISTORIAL -> {
+                    val userId = tokenManager.obtenerUserId().first()
+                    if (userId != null) {
+                        viewModel.cargarMiHistorial(userId)
+                    }
+                }
+                else -> viewModel.cargarEventos()
+            }
+        }
+    }
+
+
+
 }

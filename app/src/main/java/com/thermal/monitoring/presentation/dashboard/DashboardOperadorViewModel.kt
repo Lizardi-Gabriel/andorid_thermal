@@ -25,6 +25,9 @@ class DashboardOperadorViewModel @Inject constructor(
     private val _eventosPendientes = MutableLiveData<Int>()
     val eventosPendientes: LiveData<Int> = _eventosPendientes
 
+    private val _filtroActual = MutableLiveData<FiltroEvento>(FiltroEvento.TODOS)
+    val filtroActual: LiveData<FiltroEvento> = _filtroActual
+
     init {
         cargarEventos()
     }
@@ -32,7 +35,7 @@ class DashboardOperadorViewModel @Inject constructor(
     fun cargarEventos() {
         viewModelScope.launch {
             _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventos(limit = 500)
+            val result = eventoRepository.listarEventos(limit = 10000)
             _eventosState.value = result
 
             if (result is Resource.Success) {
@@ -55,9 +58,54 @@ class DashboardOperadorViewModel @Inject constructor(
         }
     }
 
+    fun cargarEventosPendientes() {
+        viewModelScope.launch {
+            _filtroActual.value = FiltroEvento.PENDIENTES
+            _eventosState.value = Resource.Loading()
+            val result = eventoRepository.listarEventos(limit = 10000)
+
+            if (result is Resource.Success) {
+                val eventosPendientes = result.data?.filter { it.estatus == EstatusEventoEnum.PENDIENTE } ?: emptyList()
+                _eventosState.value = Resource.Success(eventosPendientes)
+                _eventosPendientes.value = eventosPendientes.size
+            } else {
+                _eventosState.value = result
+            }
+        }
+    }
+
+    fun cargarMiHistorial(usuarioId: Int) {
+        viewModelScope.launch {
+            _filtroActual.value = FiltroEvento.MI_HISTORIAL
+            _eventosState.value = Resource.Loading()
+            val result = eventoRepository.listarEventos(limit = 10000)
+
+            if (result is Resource.Success) {
+                val miHistorial = result.data?.filter {
+                    it.usuarioId == usuarioId && it.estatus != EstatusEventoEnum.PENDIENTE
+                } ?: emptyList()
+                _eventosState.value = Resource.Success(miHistorial)
+                _eventosPendientes.value = 0
+            } else {
+                _eventosState.value = result
+            }
+        }
+    }
+
+    fun cargarTodos() {
+        _filtroActual.value = FiltroEvento.TODOS
+        cargarEventos()
+    }
+
     fun logout() {
         viewModelScope.launch {
             authRepository.logout()
         }
+    }
+
+    enum class FiltroEvento {
+        TODOS,
+        PENDIENTES,
+        MI_HISTORIAL
     }
 }
