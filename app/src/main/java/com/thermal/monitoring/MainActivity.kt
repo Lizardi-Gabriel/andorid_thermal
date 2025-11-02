@@ -1,13 +1,14 @@
 package com.thermal.monitoring
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.presentation.auth.BienvenidaFragment
-import com.thermal.monitoring.presentation.auth.LoginFragment
 import com.thermal.monitoring.presentation.dashboard.DashboardOperadorFragment
+import com.thermal.monitoring.utils.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -23,8 +24,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        NotificationHelper.solicitarPermisoNotificaciones(this) { token ->
+            // Token obtenido, se enviara al backend despues del login
+            Log.d("MainActivity", "Token FCM obtenido: $token")
+        }
+
         if (savedInstanceState == null) {
             verificarSesion()
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        NotificationHelper.manejarResultadoPermiso(requestCode, grantResults) { token ->
+            Log.d("MainActivity", "Token FCM obtenido: $token")
         }
     }
 
@@ -63,10 +80,9 @@ class MainActivity : AppCompatActivity() {
                     .commit()
             }
             "ADMIN" -> {
-                // TODO: Implementar dashboard de admin
                 Toast.makeText(
                     this,
-                    "Dashboard de Admin - Próximamente",
+                    "Dashboard de Admin - Proximamente",
                     Toast.LENGTH_LONG
                 ).show()
                 mostrarLogin()

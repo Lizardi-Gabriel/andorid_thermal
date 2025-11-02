@@ -126,6 +126,13 @@ class AuthViewModel @Inject constructor(
         _registroState.value = null
         _validacionState.value = null
     }
+
+    fun registrarTokenFCM(tokenFCM: String) {
+        viewModelScope.launch {
+            authRepository.registrarTokenFCM(tokenFCM)
+        }
+    }
+
 }
 
 // Data class para estado de validacion

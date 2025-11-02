@@ -123,3 +123,18 @@ data class LogSistemaCreate(
 data class ErrorResponse(
     val detail: String
 )
+
+// Token FCM
+data class TokenFCMRequest(
+    @SerializedName("token_fcm") val tokenFcm: String,
+    val dispositivo: String?
+)
+
+data class TokenFCMResponse(
+    @SerializedName("token_id") val tokenId: Int,
+    @SerializedName("usuario_id") val usuarioId: Int,
+    @SerializedName("token_fcm") val tokenFcm: String,
+    val dispositivo: String?,
+    @SerializedName("fecha_registro") val fechaRegistro: String,
+    val activo: Boolean
+)

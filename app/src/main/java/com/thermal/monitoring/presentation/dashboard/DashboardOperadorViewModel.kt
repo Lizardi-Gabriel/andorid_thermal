@@ -35,12 +35,20 @@ class DashboardOperadorViewModel @Inject constructor(
     fun cargarEventos() {
         viewModelScope.launch {
             _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventos(limit = 10000)
-            _eventosState.value = result
+            val result = eventoRepository.listarEventos(limit = 50)
 
             if (result is Resource.Success) {
-                val pendientes = result.data?.count { it.estatus == EstatusEventoEnum.PENDIENTE } ?: 0
+                // Ordenar por hora_subida de la última imagen (más reciente primero)
+                val eventosOrdenados = result.data?.sortedByDescending { evento ->
+                    evento.imagenes.lastOrNull()?.horaSubida ?: ""
+                } ?: emptyList()
+
+                _eventosState.value = Resource.Success(eventosOrdenados)
+
+                val pendientes = eventosOrdenados.count { it.estatus == EstatusEventoEnum.PENDIENTE }
                 _eventosPendientes.value = pendientes
+            } else {
+                _eventosState.value = result
             }
         }
     }
@@ -49,11 +57,19 @@ class DashboardOperadorViewModel @Inject constructor(
         viewModelScope.launch {
             _eventosState.value = Resource.Loading()
             val result = eventoRepository.listarEventosPorFecha(fecha)
-            _eventosState.value = result
 
             if (result is Resource.Success) {
-                val pendientes = result.data?.count { it.estatus == EstatusEventoEnum.PENDIENTE } ?: 0
+                // Ordenar por hora_subida de la última imagen (más reciente primero)
+                val eventosOrdenados = result.data?.sortedByDescending { evento ->
+                    evento.imagenes.lastOrNull()?.horaSubida ?: ""
+                } ?: emptyList()
+
+                _eventosState.value = Resource.Success(eventosOrdenados)
+
+                val pendientes = eventosOrdenados.count { it.estatus == EstatusEventoEnum.PENDIENTE }
                 _eventosPendientes.value = pendientes
+            } else {
+                _eventosState.value = result
             }
         }
     }
@@ -99,6 +115,8 @@ class DashboardOperadorViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
+            // Desactivar token FCM antes de cerrar sesión
+            authRepository.desactivarTokenFCM()
             authRepository.logout()
         }
     }

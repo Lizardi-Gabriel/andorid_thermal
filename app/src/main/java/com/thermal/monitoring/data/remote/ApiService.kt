@@ -21,6 +21,13 @@ interface AuthService {
     // Endpoint protegido para obtener usuario actual
     @GET("usuarios/me")
     suspend fun obtenerUsuarioActual(): Response<Usuario>
+
+    // Endpoint para registrar token FCM
+    @POST("registrar-token-fcm")
+    suspend fun registrarTokenFCM(
+        @Body tokenData: TokenFCMRequest
+    ): Response<TokenFCMResponse>
+
 }
 
 interface EventoService {

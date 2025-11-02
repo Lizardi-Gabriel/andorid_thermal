@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import com.thermal.monitoring.R
 import com.thermal.monitoring.databinding.FragmentLoginBinding
 import com.thermal.monitoring.presentation.dashboard.DashboardOperadorFragment
+import com.thermal.monitoring.utils.NotificationHelper
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -60,6 +61,7 @@ class LoginFragment : Fragment() {
                 is Resource.Loading -> {
                     mostrarCargando(true)
                 }
+
                 is Resource.Success -> {
                     mostrarCargando(false)
                     val usuario = resource.data
@@ -68,6 +70,12 @@ class LoginFragment : Fragment() {
                         "Bienvenido ${usuario?.nombreUsuario}",
                         Toast.LENGTH_SHORT
                     ).show()
+
+                    // Registrar token FCM
+                    NotificationHelper.obtenerTokenFCM { token ->
+                        viewModel.registrarTokenFCM(token)
+                    }
+
                     // Navegar al dashboard segun el rol
                     navegarADashboard(usuario?.rol?.name)
                 }
