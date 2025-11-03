@@ -138,3 +138,71 @@ data class TokenFCMResponse(
     @SerializedName("fecha_registro") val fechaRegistro: String,
     val activo: Boolean
 )
+
+
+
+// Evento Optimizado (para lista)
+data class EventoOptimizado(
+    @SerializedName("evento_id") val eventoId: Int,
+    @SerializedName("fecha_evento") val fechaEvento: String,
+    val descripcion: String?,
+    val estatus: EstatusEventoEnum,
+    @SerializedName("usuario_id") val usuarioId: Int?,
+    val usuario: Usuario?,
+
+    // Campos calculados
+    @SerializedName("total_imagenes") val totalImagenes: Int,
+    @SerializedName("max_detecciones") val maxDetecciones: Int,
+    @SerializedName("total_detecciones") val totalDetecciones: Int,
+    @SerializedName("hora_inicio") val horaInicio: String?,
+    @SerializedName("hora_fin") val horaFin: String?,
+
+    // Promedios de calidad del aire
+    @SerializedName("promedio_pm10") val promedioPm10: Float?,
+    @SerializedName("promedio_pm2p5") val promedioPm2p5: Float?,
+    @SerializedName("promedio_pm1p0") val promedioPm1p0: Float?,
+
+    // Solo imagen preview
+    @SerializedName("imagen_preview") val imagenPreview: Imagen?
+)
+
+// Evento Detalle Optimizado (para detalle con todas las imágenes)
+data class EventoDetalleOptimizado(
+    @SerializedName("evento_id") val eventoId: Int,
+    @SerializedName("fecha_evento") val fechaEvento: String,
+    val descripcion: String?,
+    val estatus: EstatusEventoEnum,
+    @SerializedName("usuario_id") val usuarioId: Int?,
+    val usuario: Usuario?,
+
+    // Campos calculados
+    @SerializedName("total_imagenes") val totalImagenes: Int,
+    @SerializedName("max_detecciones") val maxDetecciones: Int,
+    @SerializedName("total_detecciones") val totalDetecciones: Int,
+    @SerializedName("hora_inicio") val horaInicio: String?,
+    @SerializedName("hora_fin") val horaFin: String?,
+
+    // Promedios de calidad del aire
+    @SerializedName("promedio_pm10") val promedioPm10: Float?,
+    @SerializedName("promedio_pm2p5") val promedioPm2p5: Float?,
+    @SerializedName("promedio_pm1p0") val promedioPm1p0: Float?,
+
+    // Imagen preview
+    @SerializedName("imagen_preview") val imagenPreview: Imagen?,
+
+    // Todas las imagenes y registros (solo en detalle)
+    val imagenes: List<Imagen> = emptyList(),
+    @SerializedName("registros_calidad_aire") val registrosCalidadAire: List<CalidadAire> = emptyList()
+)
+
+// Estadisticas de eventos
+data class EstadisticasEventos(
+    @SerializedName("total_eventos") val totalEventos: Int,
+    @SerializedName("eventos_pendientes") val eventosPendientes: Int,
+    @SerializedName("eventos_confirmados") val eventosConfirmados: Int,
+    @SerializedName("eventos_descartados") val eventosDescartados: Int,
+    @SerializedName("total_detecciones") val totalDetecciones: Int,
+    @SerializedName("promedio_detecciones_por_evento") val promedioDeteccionesPorEvento: Float,
+    @SerializedName("fecha_inicio") val fechaInicio: String?,
+    @SerializedName("fecha_fin") val fechaFin: String?
+)

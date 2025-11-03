@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thermal.monitoring.data.remote.EstatusEventoEnum
-import com.thermal.monitoring.data.remote.Evento
+import com.thermal.monitoring.data.remote.EventoOptimizado
 import com.thermal.monitoring.data.repository.AuthRepository
 import com.thermal.monitoring.data.repository.EventoRepository
 import com.thermal.monitoring.utils.Resource
@@ -19,8 +19,8 @@ class DashboardOperadorViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _eventosState = MutableLiveData<Resource<List<Evento>>>()
-    val eventosState: LiveData<Resource<List<Evento>>> = _eventosState
+    private val _eventosState = MutableLiveData<Resource<List<EventoOptimizado>>>()
+    val eventosState: LiveData<Resource<List<EventoOptimizado>>> = _eventosState
 
     private val _eventosPendientes = MutableLiveData<Int>()
     val eventosPendientes: LiveData<Int> = _eventosPendientes
@@ -28,77 +28,80 @@ class DashboardOperadorViewModel @Inject constructor(
     private val _filtroActual = MutableLiveData<FiltroEvento>(FiltroEvento.TODOS)
     val filtroActual: LiveData<FiltroEvento> = _filtroActual
 
+    private val _fechaSeleccionada = MutableLiveData<String?>(null)
+    val fechaSeleccionada: LiveData<String?> = _fechaSeleccionada
+
     init {
         cargarEventos()
     }
 
     fun cargarEventos() {
+        // Esta función ahora solo carga eventos, no cambia el filtro
         viewModelScope.launch {
             _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventos(limit = 50)
+            val result = eventoRepository.listarEventosOptimizado(limit = 50)
+            _eventosState.value = result
 
             if (result is Resource.Success) {
-                // Ordenar por hora_subida de la última imagen (más reciente primero)
-                val eventosOrdenados = result.data?.sortedByDescending { evento ->
-                    evento.imagenes.lastOrNull()?.horaSubida ?: ""
-                } ?: emptyList()
-
-                _eventosState.value = Resource.Success(eventosOrdenados)
-
-                val pendientes = eventosOrdenados.count { it.estatus == EstatusEventoEnum.PENDIENTE }
+                val pendientes = result.data?.count { it.estatus == EstatusEventoEnum.PENDIENTE } ?: 0
                 _eventosPendientes.value = pendientes
-            } else {
-                _eventosState.value = result
             }
         }
     }
 
     fun cargarEventosPorFecha(fecha: String) {
+        _filtroActual.value = FiltroEvento.POR_FECHA
+        _fechaSeleccionada.value = fecha
+
         viewModelScope.launch {
             _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventosPorFecha(fecha)
+            val result = eventoRepository.listarEventosOptimizado(
+                fechaInicio = fecha,
+                fechaFin = fecha,
+                limit = 50
+            )
+            _eventosState.value = result
 
             if (result is Resource.Success) {
-                // Ordenar por hora_subida de la última imagen (más reciente primero)
-                val eventosOrdenados = result.data?.sortedByDescending { evento ->
-                    evento.imagenes.lastOrNull()?.horaSubida ?: ""
-                } ?: emptyList()
-
-                _eventosState.value = Resource.Success(eventosOrdenados)
-
-                val pendientes = eventosOrdenados.count { it.estatus == EstatusEventoEnum.PENDIENTE }
+                val pendientes = result.data?.count { it.estatus == EstatusEventoEnum.PENDIENTE } ?: 0
                 _eventosPendientes.value = pendientes
-            } else {
-                _eventosState.value = result
             }
         }
     }
 
     fun cargarEventosPendientes() {
+        _fechaSeleccionada.value = null
+        _filtroActual.value = FiltroEvento.PENDIENTES
+
         viewModelScope.launch {
-            _filtroActual.value = FiltroEvento.PENDIENTES
             _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventos(limit = 10000)
+            val result = eventoRepository.listarEventosOptimizado(
+                estatus = EstatusEventoEnum.PENDIENTE,
+                limit = 50
+            )
+            _eventosState.value = result
 
             if (result is Resource.Success) {
-                val eventosPendientes = result.data?.filter { it.estatus == EstatusEventoEnum.PENDIENTE } ?: emptyList()
-                _eventosState.value = Resource.Success(eventosPendientes)
-                _eventosPendientes.value = eventosPendientes.size
-            } else {
-                _eventosState.value = result
+                _eventosPendientes.value = result.data?.size ?: 0
             }
         }
     }
 
     fun cargarMiHistorial(usuarioId: Int) {
+        _fechaSeleccionada.value = null
+        _filtroActual.value = FiltroEvento.MI_HISTORIAL
+
         viewModelScope.launch {
-            _filtroActual.value = FiltroEvento.MI_HISTORIAL
             _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventos(limit = 10000)
+            val result = eventoRepository.listarEventosOptimizado(
+                usuarioId = usuarioId,
+                limit = 50
+            )
 
             if (result is Resource.Success) {
+                // Filtrar solo confirmados y descartados
                 val miHistorial = result.data?.filter {
-                    it.usuarioId == usuarioId && it.estatus != EstatusEventoEnum.PENDIENTE
+                    it.estatus != EstatusEventoEnum.PENDIENTE
                 } ?: emptyList()
                 _eventosState.value = Resource.Success(miHistorial)
                 _eventosPendientes.value = 0
@@ -109,6 +112,7 @@ class DashboardOperadorViewModel @Inject constructor(
     }
 
     fun cargarTodos() {
+        _fechaSeleccionada.value = null
         _filtroActual.value = FiltroEvento.TODOS
         cargarEventos()
     }
@@ -124,6 +128,7 @@ class DashboardOperadorViewModel @Inject constructor(
     enum class FiltroEvento {
         TODOS,
         PENDIENTES,
-        MI_HISTORIAL
+        MI_HISTORIAL,
+        POR_FECHA
     }
 }

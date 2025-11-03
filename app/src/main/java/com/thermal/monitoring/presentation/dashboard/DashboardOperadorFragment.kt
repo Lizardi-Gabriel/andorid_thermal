@@ -20,6 +20,7 @@ import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.databinding.FragmentDashboardOperadorBinding
 import com.thermal.monitoring.presentation.eventos.DetalleEventoFragment
 import com.thermal.monitoring.presentation.eventos.EventoAdapter
+import com.thermal.monitoring.presentation.eventos.EventoAdapterOptimizado
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -37,7 +38,8 @@ class DashboardOperadorFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: DashboardOperadorViewModel by viewModels()
-    private lateinit var eventoAdapter: EventoAdapter
+    private lateinit var eventoAdapter: EventoAdapterOptimizado
+
 
     @Inject
     lateinit var tokenManager: TokenManager
@@ -70,18 +72,15 @@ class DashboardOperadorFragment : Fragment() {
             when (menuItem.itemId) {
                 R.id.nav_dashboard -> {
                     viewModel.cargarTodos()
-                    binding.toolbar.title = "Galería de Eventos"
                 }
                 R.id.nav_pendientes -> {
                     viewModel.cargarEventosPendientes()
-                    binding.toolbar.title = "Eventos Pendientes"
                 }
                 R.id.nav_historial -> {
                     lifecycleScope.launch {
                         val userId = tokenManager.obtenerUserId().first()
                         if (userId != null) {
                             viewModel.cargarMiHistorial(userId)
-                            binding.toolbar.title = "Mi Historial"
                         } else {
                             Toast.makeText(requireContext(), "Error: Usuario no identificado", Toast.LENGTH_SHORT).show()
                         }
@@ -112,7 +111,7 @@ class DashboardOperadorFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        eventoAdapter = EventoAdapter { evento ->
+        eventoAdapter = EventoAdapterOptimizado { evento ->
             navegarADetalle(evento.eventoId)
         }
 
@@ -122,9 +121,10 @@ class DashboardOperadorFragment : Fragment() {
         }
     }
 
+
     private fun setupListeners() {
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.cargarEventos()
+            recargarDatosSegunFiltro()
         }
 
         binding.btnSeleccionarFecha.setOnClickListener {
@@ -167,6 +167,50 @@ class DashboardOperadorFragment : Fragment() {
                 }
             }
         }
+
+        viewModel.fechaSeleccionada.observe(viewLifecycleOwner) { fechaApi ->
+            if (fechaApi != null && viewModel.filtroActual.value == DashboardOperadorViewModel.FiltroEvento.POR_FECHA) {
+                try {
+                    val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    val formatoMostrar = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    formatoApi.timeZone = TimeZone.getTimeZone("UTC")
+                    formatoMostrar.timeZone = TimeZone.getTimeZone("UTC")
+
+                    val fechaDate = formatoApi.parse(fechaApi)
+                    val fechaMostrar = formatoMostrar.format(fechaDate!!)
+
+                    binding.btnSeleccionarFecha.text = fechaMostrar
+                    binding.toolbar.title = "Eventos del $fechaMostrar"
+                } catch (e: Exception) {
+                    // Manejar error de parseo
+                    binding.btnSeleccionarFecha.text = "Seleccionar fecha"
+                }
+            }
+        }
+
+        viewModel.filtroActual.observe(viewLifecycleOwner) { filtro ->
+            // Asegurar que el contexto (activity) no sea nulo
+            if (!isAdded) return@observe
+
+            when (filtro) {
+                DashboardOperadorViewModel.FiltroEvento.TODOS -> {
+                    binding.toolbar.title = "Galería de Eventos"
+                    binding.btnSeleccionarFecha.text = "Seleccionar fecha"
+                }
+                DashboardOperadorViewModel.FiltroEvento.PENDIENTES -> {
+                    binding.toolbar.title = "Eventos Pendientes"
+                    binding.btnSeleccionarFecha.text = "Seleccionar fecha"
+                }
+                DashboardOperadorViewModel.FiltroEvento.MI_HISTORIAL -> {
+                    binding.toolbar.title = "Mi Historial"
+                    binding.btnSeleccionarFecha.text = "Seleccionar fecha"
+                }
+                DashboardOperadorViewModel.FiltroEvento.POR_FECHA -> {
+                    // El observer de 'fechaSeleccionada' se encarga de esto
+                }
+                else -> binding.toolbar.title = "Galería de Eventos"
+            }
+        }
     }
 
     private fun mostrarDatePicker() {
@@ -185,10 +229,7 @@ class DashboardOperadorFragment : Fragment() {
 
             val fecha = Date(selection)
             val fechaApi = formatoApi.format(fecha)
-            val fechaMostrar = formatoMostrar.format(fecha)
 
-            binding.btnSeleccionarFecha.text = fechaMostrar
-            binding.toolbar.title = "Eventos del $fechaMostrar"
             viewModel.cargarEventosPorFecha(fechaApi)
         }
 
@@ -218,22 +259,32 @@ class DashboardOperadorFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Recargar datos cuando regrese del detalle
+        recargarDatosSegunFiltro()
+    }
+
+    private fun recargarDatosSegunFiltro() {
         lifecycleScope.launch {
             when (viewModel.filtroActual.value) {
-                DashboardOperadorViewModel.FiltroEvento.TODOS -> viewModel.cargarEventos()
+                DashboardOperadorViewModel.FiltroEvento.TODOS -> viewModel.cargarTodos()
                 DashboardOperadorViewModel.FiltroEvento.PENDIENTES -> viewModel.cargarEventosPendientes()
                 DashboardOperadorViewModel.FiltroEvento.MI_HISTORIAL -> {
                     val userId = tokenManager.obtenerUserId().first()
                     if (userId != null) {
                         viewModel.cargarMiHistorial(userId)
+                    } else {
+                        viewModel.cargarTodos() // Fallback
                     }
                 }
-                else -> viewModel.cargarEventos()
+                DashboardOperadorViewModel.FiltroEvento.POR_FECHA -> {
+                    val fechaGuardada = viewModel.fechaSeleccionada.value
+                    if (fechaGuardada != null) {
+                        viewModel.cargarEventosPorFecha(fechaGuardada)
+                    } else {
+                        viewModel.cargarTodos()
+                    }
+                }
+                else -> viewModel.cargarTodos()
             }
         }
     }
-
-
-
 }

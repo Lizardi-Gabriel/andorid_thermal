@@ -11,6 +11,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.thermal.monitoring.R
 import com.thermal.monitoring.data.remote.EstatusEventoEnum
 import com.thermal.monitoring.data.remote.Evento
+import com.thermal.monitoring.data.remote.EventoDetalleOptimizado
 import com.thermal.monitoring.databinding.FragmentDetalleEventoBinding
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
@@ -122,21 +123,20 @@ class DetalleEventoFragment : Fragment() {
         }
     }
 
-    private fun mostrarEvento(evento: Evento) {
+    private fun mostrarEvento(evento: EventoDetalleOptimizado) {
         binding.apply {
             tvEventoId.text = "Evento #${evento.eventoId}"
             tvFecha.text = "Fecha: ${evento.fechaEvento}"
 
-            if (evento.imagenes.isNotEmpty()) {
-                val horaInicio = convertirAHoraMexico(evento.imagenes.first().horaSubida)
-                val horaFin = convertirAHoraMexico(evento.imagenes.last().horaSubida)
-                tvHorario.text = "Horario: $horaInicio - $horaFin"
+            // Usar horas ya calculadas
+            if (evento.horaInicio != null && evento.horaFin != null) {
+                tvHorario.text = "Horario: ${evento.horaInicio} - ${evento.horaFin}"
             } else {
                 tvHorario.text = "Horario: Sin horario"
             }
 
-            val totalDetecciones = evento.imagenes.sumOf { it.detecciones.size }
-            tvDetecciones.text = "Detecciones: $totalDetecciones"
+            // Total detecciones ya calculado
+            tvDetecciones.text = "Detecciones: ${evento.totalDetecciones}"
 
             configurarEstatus(evento.estatus)
 
@@ -147,20 +147,18 @@ class DetalleEventoFragment : Fragment() {
                 tvGestionadoPor.text = "Gestionado por: ${evento.usuario.nombreUsuario}"
             }
 
+            // Galería de imágenes
             if (evento.imagenes.isNotEmpty()) {
                 val adapter = ImagenDeteccionAdapter(evento.imagenes)
                 viewPagerImagenes.adapter = adapter
 
-                val maxDetecciones = evento.imagenes.maxOfOrNull { it.detecciones.size } ?: 0
-                val totalImagenes = evento.imagenes.size
-
-                tvContadorImagenes.text = "Imagen 1 / $totalImagenes | $totalImagenes fotos | Max: $maxDetecciones fumador(es)"
+                tvContadorImagenes.text = "Imagen 1 / ${evento.totalImagenes} | ${evento.totalImagenes} fotos | Max: ${evento.maxDetecciones} | Actual: ${evento.imagenes[0].detecciones.size}"
 
                 viewPagerImagenes.registerOnPageChangeCallback(
                     object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
                         override fun onPageSelected(position: Int) {
                             val deteccionesEnEstaImagen = evento.imagenes[position].detecciones.size
-                            tvContadorImagenes.text = "Imagen ${position + 1} / $totalImagenes | $totalImagenes fotos | Max: $maxDetecciones | Actual: $deteccionesEnEstaImagen"
+                            tvContadorImagenes.text = "Imagen ${position + 1} / ${evento.totalImagenes} | ${evento.totalImagenes} fotos | Max: ${evento.maxDetecciones} | Actual: $deteccionesEnEstaImagen"
                         }
                     }
                 )
@@ -168,7 +166,8 @@ class DetalleEventoFragment : Fragment() {
                 tvContadorImagenes.text = "Sin imagenes"
             }
 
-            mostrarCalidadAire(evento)
+            // Calidad del aire ya calculada
+            mostrarCalidadAireOptimizada(evento)
 
             if (esOperador && evento.estatus == EstatusEventoEnum.PENDIENTE) {
                 layoutBotonesAccion.visibility = View.VISIBLE
@@ -178,6 +177,7 @@ class DetalleEventoFragment : Fragment() {
             }
         }
     }
+
 
     private fun configurarEstatus(estatus: EstatusEventoEnum) {
         binding.chipEstatus.apply {
@@ -235,7 +235,30 @@ class DetalleEventoFragment : Fragment() {
         binding.tvCalidadAire.text = texto.trim()
     }
 
-    private fun setupBotonesAccion(evento: Evento) {
+    private fun mostrarCalidadAireOptimizada(evento: EventoDetalleOptimizado) {
+        val texto = buildString {
+            append("Promedio de calidad del aire durante este evento:\n\n")
+
+            evento.promedioPm10?.let {
+                append("PM10: %.2f microgramos/m3\n".format(it))
+            }
+            evento.promedioPm2p5?.let {
+                append("PM2.5: %.2f microgramos/m3\n".format(it))
+            }
+            evento.promedioPm1p0?.let {
+                append("PM1.0: %.2f microgramos/m3\n".format(it))
+            }
+
+            if (evento.promedioPm10 == null && evento.promedioPm2p5 == null && evento.promedioPm1p0 == null) {
+                append("No hay datos suficientes")
+            }
+        }
+
+        binding.tvCalidadAire.text = texto.trim()
+    }
+
+
+    private fun setupBotonesAccion(evento: EventoDetalleOptimizado) {
         binding.btnConfirmar.setOnClickListener {
             mostrarDialogoConfirmacion(
                 titulo = "Confirmar Evento",

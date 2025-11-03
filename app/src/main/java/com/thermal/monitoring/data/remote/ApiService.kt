@@ -31,37 +31,54 @@ interface AuthService {
 }
 
 interface EventoService {
-    // Obtener lista de eventos
     @GET("eventos")
     suspend fun listarEventos(
         @Query("skip") skip: Int = 0,
         @Query("limit") limit: Int = 25
     ): Response<List<Evento>>
 
-    // Obtener eventos por fecha
     @GET("eventos/fecha/{fecha_evento}")
     suspend fun listarEventosPorFecha(
         @Path("fecha_evento") fechaEvento: String
     ): Response<List<Evento>>
 
-    // Obtener detalle de un evento
     @GET("eventos/{evento_id}")
     suspend fun obtenerEvento(
         @Path("evento_id") eventoId: Int
     ): Response<Evento>
 
-    // Actualizar estatus de un evento
     @PUT("eventos/{evento_id}/status")
     suspend fun actualizarEstatusEvento(
         @Path("evento_id") eventoId: Int,
         @Query("estatus") estatus: EstatusEventoEnum
     ): Response<Evento>
 
-    // Crear nuevo evento
     @POST("eventos")
     suspend fun crearEvento(
         @Body evento: EventoCreate
     ): Response<Evento>
+
+    // endpoints optimizados
+    @GET("eventosfront/optimizado")
+    suspend fun listarEventosOptimizado(
+        @Query("estatus") estatus: String? = null,
+        @Query("usuario_id") usuarioId: Int? = null,
+        @Query("fecha_inicio") fechaInicio: String? = null,
+        @Query("fecha_fin") fechaFin: String? = null,
+        @Query("skip") skip: Int = 0,
+        @Query("limit") limit: Int = 1000
+    ): Response<List<EventoOptimizado>>
+
+    @GET("eventosfront/{evento_id}/optimizado")
+    suspend fun obtenerEventoOptimizado(
+        @Path("evento_id") eventoId: Int
+    ): Response<EventoDetalleOptimizado>
+
+    @GET("eventosfront/estadisticas")
+    suspend fun obtenerEstadisticas(
+        @Query("fecha_inicio") fechaInicio: String? = null,
+        @Query("fecha_fin") fechaFin: String? = null
+    ): Response<EstadisticasEventos>
 }
 
 interface LogService {

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thermal.monitoring.data.remote.EstatusEventoEnum
 import com.thermal.monitoring.data.remote.Evento
+import com.thermal.monitoring.data.remote.EventoDetalleOptimizado
 import com.thermal.monitoring.data.repository.EventoRepository
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,8 +18,8 @@ class DetalleEventoViewModel @Inject constructor(
     private val eventoRepository: EventoRepository
 ) : ViewModel() {
 
-    private val _eventoState = MutableLiveData<Resource<Evento>>()
-    val eventoState: LiveData<Resource<Evento>> = _eventoState
+    private val _eventoState = MutableLiveData<Resource<EventoDetalleOptimizado>>()
+    val eventoState: LiveData<Resource<EventoDetalleOptimizado>> = _eventoState
 
     private val _actualizarEstatusState = MutableLiveData<Resource<Evento>>()
     val actualizarEstatusState: LiveData<Resource<Evento>> = _actualizarEstatusState
@@ -26,7 +27,7 @@ class DetalleEventoViewModel @Inject constructor(
     fun cargarEvento(eventoId: Int) {
         viewModelScope.launch {
             _eventoState.value = Resource.Loading()
-            val result = eventoRepository.obtenerEvento(eventoId)
+            val result = eventoRepository.obtenerEventoOptimizado(eventoId)
             _eventoState.value = result
         }
     }
