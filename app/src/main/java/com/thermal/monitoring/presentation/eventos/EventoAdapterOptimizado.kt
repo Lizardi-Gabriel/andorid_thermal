@@ -10,6 +10,10 @@ import com.thermal.monitoring.R
 import com.thermal.monitoring.data.remote.EstatusEventoEnum
 import com.thermal.monitoring.data.remote.EventoOptimizado
 import com.thermal.monitoring.databinding.ItemEventoBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class EventoAdapterOptimizado(
     private val onEventoClick: (EventoOptimizado) -> Unit
@@ -39,7 +43,9 @@ class EventoAdapterOptimizado(
 
                 // Usar hora_inicio y hora_fin ya calculados
                 if (evento.horaInicio != null && evento.horaFin != null) {
-                    tvHora.text = "${evento.horaInicio} - ${evento.horaFin}"
+                    val horaInicio = convertirAHoraMexico(evento.horaInicio)
+                    val horaFin = convertirAHoraMexico(evento.horaFin)
+                    tvHora.text = "${horaInicio} - ${horaFin}"
                 } else {
                     tvHora.text = "Sin horario"
                 }
@@ -86,6 +92,19 @@ class EventoAdapterOptimizado(
                 root.setOnClickListener {
                     onEventoClick(evento)
                 }
+            }
+        }
+
+        private fun convertirAHoraMexico(horaUtc: String): String {
+            return try {
+                val formatoEntrada = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                formatoEntrada.timeZone = TimeZone.getTimeZone("UTC")
+                val fechaUtc = formatoEntrada.parse(horaUtc)
+                val formatoSalida = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                formatoSalida.timeZone = TimeZone.getTimeZone("America/Mexico_City")
+                formatoSalida.format(fechaUtc ?: Date())
+            } catch (e: Exception) {
+                horaUtc
             }
         }
     }

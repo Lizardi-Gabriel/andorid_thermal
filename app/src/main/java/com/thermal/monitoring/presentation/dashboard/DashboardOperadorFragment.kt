@@ -60,7 +60,7 @@ class DashboardOperadorFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
         setupObservers()
-        cargarDatosUsuario()
+        cargarDatosHeaderDrawer()
     }
 
     private fun setupDrawer() {
@@ -77,14 +77,7 @@ class DashboardOperadorFragment : Fragment() {
                     viewModel.cargarEventosPendientes()
                 }
                 R.id.nav_historial -> {
-                    lifecycleScope.launch {
-                        val userId = tokenManager.obtenerUserId().first()
-                        if (userId != null) {
-                            viewModel.cargarMiHistorial(userId)
-                        } else {
-                            Toast.makeText(requireContext(), "Error: Usuario no identificado", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    viewModel.cargarMiHistorial()
                 }
                 R.id.nav_perfil -> {
                     Toast.makeText(requireContext(), "Mi Perfil - Proximamente", Toast.LENGTH_SHORT).show()
@@ -99,7 +92,7 @@ class DashboardOperadorFragment : Fragment() {
     }
 
 
-    private fun cargarDatosUsuario() {
+    private fun cargarDatosHeaderDrawer() {
         lifecycleScope.launch {
             val username = tokenManager.obtenerUsername().first()
             val rol = tokenManager.obtenerRol().first()
@@ -124,11 +117,17 @@ class DashboardOperadorFragment : Fragment() {
 
     private fun setupListeners() {
         binding.swipeRefresh.setOnRefreshListener {
-            recargarDatosSegunFiltro()
+            viewModel.recargarEventos()
         }
 
         binding.btnSeleccionarFecha.setOnClickListener {
             mostrarDatePicker()
+        }
+
+        binding.btnSeleccionarFecha.setOnLongClickListener {
+            viewModel.limpiarFiltroFecha()
+            Toast.makeText(requireContext(), "Filtro de fecha limpiado", Toast.LENGTH_SHORT).show()
+            true
         }
     }
 
@@ -145,7 +144,7 @@ class DashboardOperadorFragment : Fragment() {
 
                     val eventos = resource.data ?: emptyList()
 
-                    binding.tvTituloRecientes.text = "Eventos recientes (${eventos.size})"
+                    binding.tvTituloRecientes.text = "Eventos (${eventos.size})"
 
                     if (eventos.isEmpty()) {
                         binding.layoutVacio.visibility = View.VISIBLE
@@ -169,49 +168,50 @@ class DashboardOperadorFragment : Fragment() {
         }
 
         viewModel.fechaSeleccionada.observe(viewLifecycleOwner) { fechaApi ->
-            if (fechaApi != null && viewModel.filtroActual.value == DashboardOperadorViewModel.FiltroEvento.POR_FECHA) {
-                try {
-                    val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                    val formatoMostrar = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    formatoApi.timeZone = TimeZone.getTimeZone("UTC")
-                    formatoMostrar.timeZone = TimeZone.getTimeZone("UTC")
-
-                    val fechaDate = formatoApi.parse(fechaApi)
-                    val fechaMostrar = formatoMostrar.format(fechaDate!!)
-
-                    binding.btnSeleccionarFecha.text = fechaMostrar
-                    binding.toolbar.title = "Eventos del $fechaMostrar"
-                } catch (e: Exception) {
-                    // Manejar error de parseo
-                    binding.btnSeleccionarFecha.text = "Seleccionar fecha"
-                }
-            }
+            actualizarUiFiltros()
         }
-
         viewModel.filtroActual.observe(viewLifecycleOwner) { filtro ->
-            // Asegurar que el contexto (activity) no sea nulo
-            if (!isAdded) return@observe
-
-            when (filtro) {
-                DashboardOperadorViewModel.FiltroEvento.TODOS -> {
-                    binding.toolbar.title = "Galería de Eventos"
-                    binding.btnSeleccionarFecha.text = "Seleccionar fecha"
-                }
-                DashboardOperadorViewModel.FiltroEvento.PENDIENTES -> {
-                    binding.toolbar.title = "Eventos Pendientes"
-                    binding.btnSeleccionarFecha.text = "Seleccionar fecha"
-                }
-                DashboardOperadorViewModel.FiltroEvento.MI_HISTORIAL -> {
-                    binding.toolbar.title = "Mi Historial"
-                    binding.btnSeleccionarFecha.text = "Seleccionar fecha"
-                }
-                DashboardOperadorViewModel.FiltroEvento.POR_FECHA -> {
-                    // El observer de 'fechaSeleccionada' se encarga de esto
-                }
-                else -> binding.toolbar.title = "Galería de Eventos"
-            }
+            actualizarUiFiltros()
         }
     }
+
+    private fun actualizarUiFiltros() {
+        if (!isAdded) return
+
+        val filtro = viewModel.filtroActual.value
+        val fechaApi = viewModel.fechaSeleccionada.value
+
+        if (fechaApi != null) {
+            val fechaMostrar = parsearFecha(fechaApi, "dd/MM/yyyy")
+            binding.btnSeleccionarFecha.text = fechaMostrar
+        } else {
+            binding.btnSeleccionarFecha.text = "Seleccionar Fecha"
+        }
+
+        val tituloBase = when (filtro) {
+            DashboardOperadorViewModel.FiltroEvento.TODOS -> "Galería de Eventos"
+            DashboardOperadorViewModel.FiltroEvento.PENDIENTES -> "Eventos Pendientes"
+            DashboardOperadorViewModel.FiltroEvento.MI_HISTORIAL -> "Mi Historial"
+            else -> "Galería de Eventos"
+        }
+
+        val fechaTitulo = if (fechaApi != null) "(${parsearFecha(fechaApi, "dd/MM")})" else ""
+        binding.toolbar.title = "$tituloBase $fechaTitulo".trim()
+    }
+
+    private fun parsearFecha(fechaApi: String, formatoSalida: String): String {
+        return try {
+            val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val formatoMostrar = SimpleDateFormat(formatoSalida, Locale.getDefault())
+            formatoApi.timeZone = TimeZone.getTimeZone("UTC")
+            formatoMostrar.timeZone = TimeZone.getTimeZone("UTC")
+            val fechaDate = formatoApi.parse(fechaApi)
+            formatoMostrar.format(fechaDate!!)
+        } catch (e: Exception) {
+            fechaApi
+        }
+    }
+
 
     private fun mostrarDatePicker() {
         val datePicker = MaterialDatePicker.Builder.datePicker()
@@ -221,14 +221,8 @@ class DashboardOperadorFragment : Fragment() {
 
         datePicker.addOnPositiveButtonClickListener { selection ->
             val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val formatoMostrar = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-
-            // Usar UTC para evitar problemas de zona horaria
             formatoApi.timeZone = TimeZone.getTimeZone("UTC")
-            formatoMostrar.timeZone = TimeZone.getTimeZone("UTC")
-
-            val fecha = Date(selection)
-            val fechaApi = formatoApi.format(fecha)
+            val fechaApi = formatoApi.format(Date(selection))
 
             viewModel.cargarEventosPorFecha(fechaApi)
         }
@@ -259,32 +253,15 @@ class DashboardOperadorFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        recargarDatosSegunFiltro()
-    }
-
-    private fun recargarDatosSegunFiltro() {
         lifecycleScope.launch {
-            when (viewModel.filtroActual.value) {
-                DashboardOperadorViewModel.FiltroEvento.TODOS -> viewModel.cargarTodos()
-                DashboardOperadorViewModel.FiltroEvento.PENDIENTES -> viewModel.cargarEventosPendientes()
-                DashboardOperadorViewModel.FiltroEvento.MI_HISTORIAL -> {
-                    val userId = tokenManager.obtenerUserId().first()
-                    if (userId != null) {
-                        viewModel.cargarMiHistorial(userId)
-                    } else {
-                        viewModel.cargarTodos() // Fallback
-                    }
-                }
-                DashboardOperadorViewModel.FiltroEvento.POR_FECHA -> {
-                    val fechaGuardada = viewModel.fechaSeleccionada.value
-                    if (fechaGuardada != null) {
-                        viewModel.cargarEventosPorFecha(fechaGuardada)
-                    } else {
-                        viewModel.cargarTodos()
-                    }
-                }
-                else -> viewModel.cargarTodos()
+            val userId = tokenManager.obtenerUserId().first()
+            if (userId != null) {
+                viewModel.setUsuarioId(userId)
+            } else {
+                // TODO: Manejar caso donde el ID no está
             }
+            viewModel.recargarEventos()
         }
     }
 }
+

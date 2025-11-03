@@ -31,95 +31,81 @@ class DashboardOperadorViewModel @Inject constructor(
     private val _fechaSeleccionada = MutableLiveData<String?>(null)
     val fechaSeleccionada: LiveData<String?> = _fechaSeleccionada
 
-    init {
-        cargarEventos()
+    private var usuarioIdActual: Int? = null
+
+
+    fun setUsuarioId(usuarioId: Int) {
+        usuarioIdActual = usuarioId
     }
 
-    fun cargarEventos() {
-        // Esta función ahora solo carga eventos, no cambia el filtro
-        viewModelScope.launch {
-            _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventosOptimizado(limit = 50)
-            _eventosState.value = result
+    fun recargarEventos() {
+        val filtro = _filtroActual.value
+        val fecha = _fechaSeleccionada.value
 
-            if (result is Resource.Success) {
-                val pendientes = result.data?.count { it.estatus == EstatusEventoEnum.PENDIENTE } ?: 0
-                _eventosPendientes.value = pendientes
-            }
+        val estatus = if (filtro == FiltroEvento.PENDIENTES) EstatusEventoEnum.PENDIENTE else null
+        val usuarioId = if (filtro == FiltroEvento.MI_HISTORIAL) usuarioIdActual else null
+
+        if (filtro == FiltroEvento.MI_HISTORIAL && usuarioId == null) {
+            _eventosState.value = Resource.Success(emptyList())
+            return
         }
-    }
-
-    fun cargarEventosPorFecha(fecha: String) {
-        _filtroActual.value = FiltroEvento.POR_FECHA
-        _fechaSeleccionada.value = fecha
-
-        viewModelScope.launch {
-            _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventosOptimizado(
-                fechaInicio = fecha,
-                fechaFin = fecha,
-                limit = 50
-            )
-            _eventosState.value = result
-
-            if (result is Resource.Success) {
-                val pendientes = result.data?.count { it.estatus == EstatusEventoEnum.PENDIENTE } ?: 0
-                _eventosPendientes.value = pendientes
-            }
-        }
-    }
-
-    fun cargarEventosPendientes() {
-        _fechaSeleccionada.value = null
-        _filtroActual.value = FiltroEvento.PENDIENTES
-
-        viewModelScope.launch {
-            _eventosState.value = Resource.Loading()
-            val result = eventoRepository.listarEventosOptimizado(
-                estatus = EstatusEventoEnum.PENDIENTE,
-                limit = 50
-            )
-            _eventosState.value = result
-
-            if (result is Resource.Success) {
-                _eventosPendientes.value = result.data?.size ?: 0
-            }
-        }
-    }
-
-    fun cargarMiHistorial(usuarioId: Int) {
-        _fechaSeleccionada.value = null
-        _filtroActual.value = FiltroEvento.MI_HISTORIAL
 
         viewModelScope.launch {
             _eventosState.value = Resource.Loading()
             val result = eventoRepository.listarEventosOptimizado(
                 usuarioId = usuarioId,
+                estatus = estatus,
+                fechaInicio = fecha,
+                fechaFin = fecha,
                 limit = 50
             )
 
             if (result is Resource.Success) {
-                // Filtrar solo confirmados y descartados
-                val miHistorial = result.data?.filter {
-                    it.estatus != EstatusEventoEnum.PENDIENTE
-                } ?: emptyList()
-                _eventosState.value = Resource.Success(miHistorial)
-                _eventosPendientes.value = 0
+                var eventos = result.data ?: emptyList()
+
+                if (filtro == FiltroEvento.MI_HISTORIAL) {
+                    eventos = eventos.filter { it.estatus != EstatusEventoEnum.PENDIENTE }
+                    _eventosPendientes.value = 0
+                } else {
+                    val pendientes = eventos.count { it.estatus == EstatusEventoEnum.PENDIENTE }
+                    _eventosPendientes.value = pendientes
+                }
+                _eventosState.value = Resource.Success(eventos)
+
             } else {
                 _eventosState.value = result
             }
         }
     }
 
+
+    fun cargarEventosPorFecha(fecha: String) {
+        _fechaSeleccionada.value = fecha
+        recargarEventos()
+    }
+
+    fun cargarEventosPendientes() {
+        _filtroActual.value = FiltroEvento.PENDIENTES
+        recargarEventos()
+    }
+
+    fun cargarMiHistorial() {
+        _filtroActual.value = FiltroEvento.MI_HISTORIAL
+        recargarEventos()
+    }
+
     fun cargarTodos() {
-        _fechaSeleccionada.value = null
         _filtroActual.value = FiltroEvento.TODOS
-        cargarEventos()
+        recargarEventos()
+    }
+
+    fun limpiarFiltroFecha() {
+        _fechaSeleccionada.value = null
+        recargarEventos()
     }
 
     fun logout() {
         viewModelScope.launch {
-            // Desactivar token FCM antes de cerrar sesión
             authRepository.desactivarTokenFCM()
             authRepository.logout()
         }
@@ -128,7 +114,7 @@ class DashboardOperadorViewModel @Inject constructor(
     enum class FiltroEvento {
         TODOS,
         PENDIENTES,
-        MI_HISTORIAL,
-        POR_FECHA
+        MI_HISTORIAL
     }
 }
+

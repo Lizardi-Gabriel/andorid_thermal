@@ -1,10 +1,12 @@
 package com.thermal.monitoring.presentation.eventos
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -17,7 +19,7 @@ import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
-
+import java.util.Locale
 
 @AndroidEntryPoint
 class DetalleEventoFragment : Fragment() {
@@ -130,7 +132,10 @@ class DetalleEventoFragment : Fragment() {
 
             // Usar horas ya calculadas
             if (evento.horaInicio != null && evento.horaFin != null) {
-                tvHorario.text = "Horario: ${evento.horaInicio} - ${evento.horaFin}"
+                val horaInicio = convertirAHoraMexico(evento.horaInicio)
+                val horaFin = convertirAHoraMexico(evento.horaFin)
+
+                tvHorario.text = "Horario: ${horaInicio} - ${horaFin}"
             } else {
                 tvHorario.text = "Horario: Sin horario"
             }
@@ -288,22 +293,18 @@ class DetalleEventoFragment : Fragment() {
     }
 
 
-    private fun convertirAHoraMexico(timestamp: String): String {
+    private fun convertirAHoraMexico(horaUtc: String): String {
         return try {
-            val formatoEntrada = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            val formatoEntrada = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             formatoEntrada.timeZone = TimeZone.getTimeZone("UTC")
-
-            val fecha = formatoEntrada.parse(timestamp)
-
+            val fechaUtc = formatoEntrada.parse(horaUtc)
             val formatoSalida = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             formatoSalida.timeZone = TimeZone.getTimeZone("America/Mexico_City")
-
-            formatoSalida.format(fecha ?: Date())
+            formatoSalida.format(fechaUtc ?: Date())
         } catch (e: Exception) {
-            timestamp.substringAfter("T").substringBefore(".")
+            horaUtc
         }
     }
-
 
 
     override fun onDestroyView() {
