@@ -70,6 +70,16 @@ class DashboardOperadorViewModel @Inject constructor(
                     val pendientes = eventos.count { it.estatus == EstatusEventoEnum.PENDIENTE }
                     _eventosPendientes.value = pendientes
                 }
+
+                eventos = try {
+                    eventos.sortedWith(
+                        compareByDescending<EventoOptimizado> { it.fechaEvento }
+                            .thenByDescending { it.horaInicio }
+                    )
+                } catch (e: Exception) {
+                    eventos.sortedByDescending { it.horaInicio }
+                }
+
                 _eventosState.value = Resource.Success(eventos)
 
             } else {

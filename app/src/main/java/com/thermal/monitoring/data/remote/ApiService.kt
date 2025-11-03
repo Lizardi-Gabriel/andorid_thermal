@@ -50,7 +50,7 @@ interface EventoService {
     @PUT("eventos/{evento_id}/status")
     suspend fun actualizarEstatusEvento(
         @Path("evento_id") eventoId: Int,
-        @Query("estatus") estatus: EstatusEventoEnum
+        @Query("estatus") estatus: String? = null
     ): Response<Evento>
 
     @POST("eventos")

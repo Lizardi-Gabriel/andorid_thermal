@@ -76,7 +76,10 @@ class EventoRepository @Inject constructor(
 
     suspend fun actualizarEstatusEvento(eventoId: Int, estatus: EstatusEventoEnum): Resource<Evento> {
         return try {
-            val response = eventoService.actualizarEstatusEvento(eventoId, estatus)
+            val response = eventoService.actualizarEstatusEvento(
+                eventoId,
+                estatus.name.lowercase()
+            )
 
             if (response.isSuccessful && response.body() != null) {
                 Resource.Success(response.body()!!)
