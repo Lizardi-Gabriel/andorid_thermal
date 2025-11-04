@@ -37,6 +37,8 @@ class DashboardAdminFragment : Fragment() {
     private val viewModel: DashboardAdminViewModel by viewModels()
     private lateinit var eventoAdapter: EventoAdapterOptimizado
 
+    private val reportesViewModel: ReportesViewModel by viewModels()
+
     @Inject
     lateinit var tokenManager: TokenManager
 
@@ -77,7 +79,7 @@ class DashboardAdminFragment : Fragment() {
                     navegarAGestionUsuarios()
                 }
                 R.id.nav_generar_reporte -> {
-                    Toast.makeText(requireContext(), "Generar Reporte - Proximamente", Toast.LENGTH_SHORT).show()
+                    mostrarDialogoGenerarReporte()
                 }
                 R.id.nav_perfil -> {
                     Toast.makeText(requireContext(), "Mi Perfil - Proximamente", Toast.LENGTH_SHORT).show()
@@ -88,6 +90,203 @@ class DashboardAdminFragment : Fragment() {
             }
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
+        }
+    }
+
+    private fun mostrarDialogoGenerarReporte() {
+        val dialogBinding = com.thermal.monitoring.databinding.DialogGenerarReporteBinding.inflate(layoutInflater)
+
+        var fechaInicioSeleccionada: String? = null
+        var fechaFinSeleccionada: String? = null
+
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnSeleccionarRango.setOnClickListener {
+            mostrarRangeDatePickerParaReporte { fechaInicio, fechaFin ->
+                fechaInicioSeleccionada = fechaInicio
+                fechaFinSeleccionada = fechaFin
+
+                val formatoMostrar = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val fechaInicioDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(fechaInicio)
+                val fechaFinDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(fechaFin)
+
+                dialogBinding.tvRangoSeleccionado.text =
+                    "Rango: ${formatoMostrar.format(fechaInicioDate)} - ${formatoMostrar.format(fechaFinDate)}"
+            }
+        }
+
+        dialogBinding.btnCancelar.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnGenerar.setOnClickListener {
+            dialogBinding.progressBar.visibility = View.VISIBLE
+            dialogBinding.btnGenerar.isEnabled = false
+
+            reportesViewModel.generarReportePDF(fechaInicioSeleccionada, fechaFinSeleccionada)
+        }
+
+        // Observer para el estado del reporte
+        reportesViewModel.reportePDFState.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    dialogBinding.progressBar.visibility = View.VISIBLE
+                }
+                is Resource.Success -> {
+                    dialogBinding.progressBar.visibility = View.GONE
+                    dialog.dismiss()
+
+                    resource.data?.let { responseBody ->
+                        guardarYAbrirPDF(responseBody)
+                    }
+
+                    reportesViewModel.limpiarEstado()
+                }
+                is Resource.Error -> {
+                    dialogBinding.progressBar.visibility = View.GONE
+                    dialogBinding.btnGenerar.isEnabled = true
+
+                    Toast.makeText(
+                        requireContext(),
+                        resource.message ?: "Error al generar reporte",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    reportesViewModel.limpiarEstado()
+                }
+                null -> { /* Estado inicial */ }
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun mostrarRangeDatePickerParaReporte(onRangoSeleccionado: (String, String) -> Unit) {
+        val builder = MaterialDatePicker.Builder.dateRangePicker()
+            .setTitleText("Seleccionar rango de fechas")
+
+        val picker = builder.build()
+
+        picker.addOnPositiveButtonClickListener { selection ->
+            val fechaInicio = Date(selection.first)
+            val fechaFin = Date(selection.second)
+
+            val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            formatoApi.timeZone = TimeZone.getTimeZone("UTC")
+
+            val fechaInicioStr = formatoApi.format(fechaInicio)
+            val fechaFinStr = formatoApi.format(fechaFin)
+
+            onRangoSeleccionado(fechaInicioStr, fechaFinStr)
+        }
+
+        picker.show(parentFragmentManager, "DATE_RANGE_PICKER_REPORTE")
+    }
+
+    private fun guardarYAbrirPDF(responseBody: okhttp3.ResponseBody) {
+        try {
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val fileName = "reporte_thermal_$timestamp.pdf"
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                // Android 10+ - Usar MediaStore
+                val contentValues = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
+                }
+
+                val uri = requireContext().contentResolver.insert(
+                    android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                    contentValues
+                )
+
+                if (uri != null) {
+                    requireContext().contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        responseBody.byteStream().use { inputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+
+                    Toast.makeText(
+                        requireContext(),
+                        "Reporte guardado en Descargas: $fileName",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    abrirPDFMediaStore(uri)
+                }
+            } else {
+                // Android 9 y anteriores
+                val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
+                    android.os.Environment.DIRECTORY_DOWNLOADS
+                )
+                val file = java.io.File(downloadsDir, fileName)
+
+                responseBody.byteStream().use { input ->
+                    file.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                Toast.makeText(
+                    requireContext(),
+                    "Reporte guardado en Descargas: $fileName",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                abrirPDF(file)
+            }
+
+        } catch (e: Exception) {
+            android.util.Log.e("DashboardAdmin", "Error al guardar PDF", e)
+            Toast.makeText(
+                requireContext(),
+                "Error al guardar PDF: ${e.localizedMessage}",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun abrirPDFMediaStore(uri: android.net.Uri) {
+        try {
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/pdf")
+                flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(
+                requireContext(),
+                "No hay aplicacion para abrir PDF. El archivo esta en Descargas.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun abrirPDF(file: java.io.File) {
+        try {
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                requireContext(),
+                "${requireContext().packageName}.provider",
+                file
+            )
+
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/pdf")
+                flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(
+                requireContext(),
+                "No hay aplicacion para abrir PDF. Busca el archivo en Descargas.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
