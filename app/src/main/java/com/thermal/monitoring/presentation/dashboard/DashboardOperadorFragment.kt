@@ -61,6 +61,10 @@ class DashboardOperadorFragment : Fragment() {
         setupListeners()
         setupObservers()
         cargarDatosHeaderDrawer()
+
+        // Establecer fecha de hoy en el boton al iniciar
+        val hoy = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+        binding.btnSeleccionarFecha.text = hoy
     }
 
     private fun setupDrawer() {

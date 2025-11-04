@@ -14,6 +14,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.text.SimpleDateFormat
+import java.util.*
 
 @HiltViewModel
 class DashboardAdminViewModel @Inject constructor(
@@ -37,7 +39,11 @@ class DashboardAdminViewModel @Inject constructor(
     private var logoutJob: Job? = null
 
     init {
-        cargarEstadisticas()
+        val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        _fechaInicioFiltro.value = hoy
+        _fechaFinFiltro.value = hoy
+
+        cargarEstadisticas(hoy, hoy)
         cargarEventos()
     }
 

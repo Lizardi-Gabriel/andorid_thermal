@@ -57,6 +57,10 @@ class DashboardAdminFragment : Fragment() {
         setupListeners()
         setupObservers()
         cargarDatosUsuario()
+
+        // Establecer fecha de hoy en el boton
+        val hoy = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+        binding.btnFiltrarFechas.text = hoy
     }
 
     private fun setupDrawer() {

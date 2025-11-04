@@ -13,6 +13,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.text.SimpleDateFormat
+import java.util.*
+
 
 @HiltViewModel
 class DashboardOperadorViewModel @Inject constructor(
@@ -29,7 +32,9 @@ class DashboardOperadorViewModel @Inject constructor(
     private val _filtroActual = MutableLiveData<FiltroEvento>(FiltroEvento.TODOS)
     val filtroActual: LiveData<FiltroEvento> = _filtroActual
 
-    private val _fechaSeleccionada = MutableLiveData<String?>(null)
+    private val _fechaSeleccionada = MutableLiveData<String?>(
+        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    )
     val fechaSeleccionada: LiveData<String?> = _fechaSeleccionada
 
     private var usuarioIdActual: Int? = null
