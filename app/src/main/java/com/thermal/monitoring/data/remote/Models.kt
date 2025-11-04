@@ -206,3 +206,29 @@ data class EstadisticasEventos(
     @SerializedName("fecha_inicio") val fechaInicio: String?,
     @SerializedName("fecha_fin") val fechaFin: String?
 )
+
+
+// Gestion de Usuarios (Admin)
+data class UsuarioLista(
+    @SerializedName("usuario_id") val usuarioId: Int,
+    @SerializedName("nombre_usuario") val nombreUsuario: String,
+    @SerializedName("correo_electronico") val correoElectronico: String,
+    val rol: RolUsuarioEnum,
+    @SerializedName("total_eventos_gestionados") val totalEventosGestionados: Int,
+    @SerializedName("eventos_confirmados") val eventosConfirmados: Int,
+    @SerializedName("eventos_descartados") val eventosDescartados: Int
+)
+
+data class UsuarioCreateRequest(
+    @SerializedName("nombre_usuario") val nombreUsuario: String,
+    @SerializedName("correo_electronico") val correoElectronico: String,
+    val password: String,
+    val rol: RolUsuarioEnum
+)
+
+data class UsuarioUpdateRequest(
+    @SerializedName("nombre_usuario") val nombreUsuario: String?,
+    @SerializedName("correo_electronico") val correoElectronico: String?,
+    val password: String?,
+    val rol: RolUsuarioEnum?
+)

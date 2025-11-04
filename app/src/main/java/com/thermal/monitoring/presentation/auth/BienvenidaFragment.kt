@@ -32,22 +32,11 @@ class BienvenidaFragment : Fragment() {
         binding.btnLogin.setOnClickListener {
             navegarALogin()
         }
-
-        binding.btnRegistro.setOnClickListener {
-            navegarARegistro()
-        }
     }
 
     private fun navegarALogin() {
         parentFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, LoginFragment())
-            .addToBackStack(null)
-            .commit()
-    }
-
-    private fun navegarARegistro() {
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, RegistroFragment())
             .addToBackStack(null)
             .commit()
     }

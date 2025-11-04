@@ -88,34 +88,14 @@
         android:textSize="14sp"
         app:backgroundTint="@color/black"
         app:cornerRadius="25dp"
-        android:layout_marginBottom="5dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnRegistro"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:textAllCaps="false"
-        />
-
-    <!-- Botón Registrarse -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnRegistro"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="200dp"
-        android:layout_height="50dp"
-        android:text="Registrate"
-        android:textColor="@color/black"
-        android:textSize="14sp"
-        app:cornerRadius="25dp"
-
-        android:layout_marginBottom="15dp"
+        android:layout_marginBottom="48dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:strokeColor="@color/black"
-        app:strokeWidth="2dp"
         android:textAllCaps="false"
-
-
         />
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

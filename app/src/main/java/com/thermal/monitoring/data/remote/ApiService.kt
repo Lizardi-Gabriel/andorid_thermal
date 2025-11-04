@@ -95,3 +95,39 @@ interface LogService {
         @Body log: LogSistemaCreate
     ): Response<LogSistema>
 }
+
+
+interface AdminService {
+    // Gestion de usuarios
+    @GET("admin/usuarios")
+    suspend fun listarUsuarios(): Response<List<UsuarioLista>>
+
+    @POST("admin/usuarios")
+    suspend fun crearUsuario(
+        @Body usuario: UsuarioCreateRequest
+    ): Response<Usuario>
+
+    @PUT("admin/usuarios/{usuario_id}")
+    suspend fun actualizarUsuario(
+        @Path("usuario_id") usuarioId: Int,
+        @Body usuario: UsuarioUpdateRequest
+    ): Response<Usuario>
+
+    @DELETE("admin/usuarios/{usuario_id}")
+    suspend fun eliminarUsuario(
+        @Path("usuario_id") usuarioId: Int
+    ): Response<Unit>
+
+    @GET("admin/usuarios/{usuario_id}")
+    suspend fun obtenerUsuario(
+        @Path("usuario_id") usuarioId: Int
+    ): Response<Usuario>
+
+    // Reportes PDF
+    @GET("admin/reportes/generar-pdf")
+    @Streaming
+    suspend fun generarReportePDF(
+        @Query("fecha_inicio") fechaInicio: String? = null,
+        @Query("fecha_fin") fechaFin: String? = null
+    ): Response<okhttp3.ResponseBody>
+}

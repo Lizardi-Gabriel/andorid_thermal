@@ -4,17 +4,17 @@
         <item
             android:id="@+id/nav_dashboard"
             android:icon="@android:drawable/ic_menu_view"
-            android:title="Menú" />
+            android:title="Dashboard" />
 
         <item
-            android:id="@+id/nav_historial_completo"
-            android:icon="@android:drawable/ic_menu_recent_history"
-            android:title="Historial Completo" />
+            android:id="@+id/nav_gestion_usuarios"
+            android:icon="@android:drawable/ic_menu_manage"
+            android:title="Gestion de Usuarios" />
 
         <item
-            android:id="@+id/nav_logs"
-            android:icon="@android:drawable/ic_menu_info_details"
-            android:title="Logs del Sistema" />
+            android:id="@+id/nav_generar_reporte"
+            android:icon="@android:drawable/ic_menu_save"
+            android:title="Generar Reporte PDF" />
     </group>
 
     <item android:title="Cuenta">

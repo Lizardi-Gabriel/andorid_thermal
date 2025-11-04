@@ -69,11 +69,11 @@ class DashboardAdminFragment : Fragment() {
                 R.id.nav_dashboard -> {
                     viewModel.limpiarFiltros()
                 }
-                R.id.nav_historial_completo -> {
-                    Toast.makeText(requireContext(), "Historial Completo", Toast.LENGTH_SHORT).show()
+                R.id.nav_gestion_usuarios -> {
+                    navegarAGestionUsuarios()
                 }
-                R.id.nav_logs -> {
-                    Toast.makeText(requireContext(), "Logs del Sistema - Proximamente", Toast.LENGTH_SHORT).show()
+                R.id.nav_generar_reporte -> {
+                    Toast.makeText(requireContext(), "Generar Reporte - Proximamente", Toast.LENGTH_SHORT).show()
                 }
                 R.id.nav_perfil -> {
                     Toast.makeText(requireContext(), "Mi Perfil - Proximamente", Toast.LENGTH_SHORT).show()
@@ -85,6 +85,13 @@ class DashboardAdminFragment : Fragment() {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
+    }
+
+    private fun navegarAGestionUsuarios() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, GestionUsuariosFragment())
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun cargarDatosUsuario() {

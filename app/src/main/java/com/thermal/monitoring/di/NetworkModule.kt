@@ -1,6 +1,7 @@
 package com.thermal.monitoring.di
 
 import com.thermal.monitoring.data.local.TokenManager
+import com.thermal.monitoring.data.remote.AdminService
 import com.thermal.monitoring.data.remote.AuthService
 import com.thermal.monitoring.data.remote.EventoService
 import com.thermal.monitoring.data.remote.LogService
@@ -96,4 +97,11 @@ object NetworkModule {
     fun provideLogService(retrofit: Retrofit): LogService {
         return retrofit.create(LogService::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideAdminService(retrofit: Retrofit): AdminService {
+        return retrofit.create(AdminService::class.java)
+    }
+
 }
