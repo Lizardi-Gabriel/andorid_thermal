@@ -17,6 +17,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         private const val TAG = "FCMService"
         private const val CHANNEL_ID = "thermal_monitoring_channel"
         private const val CHANNEL_NAME = "Eventos de Thermal Monitoring"
+        const val EXTRA_EVENTO_ID = "evento_id"
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -24,33 +25,31 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         Log.d(TAG, "Mensaje recibido de: ${remoteMessage.from}")
 
-        remoteMessage.notification?.let {
-            Log.d(TAG, "Titulo: ${it.title}")
-            Log.d(TAG, "Cuerpo: ${it.body}")
-            mostrarNotificacion(it.title, it.body)
-        }
+        val eventoId = remoteMessage.data["evento_id"]?.toIntOrNull()
 
-        remoteMessage.data.isNotEmpty().let {
+        // Priorizar data payload sobre notification payload
+        if (remoteMessage.data.isNotEmpty()) {
             Log.d(TAG, "Data payload: ${remoteMessage.data}")
             val titulo = remoteMessage.data["title"] ?: "Nuevo Evento"
             val mensaje = remoteMessage.data["body"] ?: "Se ha detectado un nuevo evento"
-            mostrarNotificacion(titulo, mensaje)
+            mostrarNotificacion(titulo, mensaje, eventoId)
+        } else {
+            remoteMessage.notification?.let {
+                Log.d(TAG, "Notification payload - Titulo: ${it.title}, Cuerpo: ${it.body}")
+                mostrarNotificacion(it.title, it.body, eventoId)
+            }
         }
     }
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d(TAG, "Nuevo token FCM: $token")
-
-
-
-        // TODO: enviar el token al servidor
-
     }
 
-    private fun mostrarNotificacion(titulo: String?, mensaje: String?) {
+    private fun mostrarNotificacion(titulo: String?, mensaje: String?, eventoId: Int?) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+        // Crear canal de notificaciones para Android 8.0+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -58,17 +57,23 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notificaciones de eventos detectados"
+                enableVibration(true)
+                enableLights(true)
             }
             notificationManager.createNotificationChannel(channel)
         }
 
+        // Intent para abrir la app
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            eventoId?.let {
+                putExtra(EXTRA_EVENTO_ID, it)
+            }
         }
 
         val pendingIntent = PendingIntent.getActivity(
             this,
-            0,
+            eventoId ?: 0,
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
@@ -80,8 +85,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVibrate(longArrayOf(0, 500, 200, 500))
             .build()
 
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        notificationManager.notify(eventoId ?: System.currentTimeMillis().toInt(), notification)
+
+        Log.d(TAG, "Notificacion mostrada - EventoId: $eventoId")
     }
 }

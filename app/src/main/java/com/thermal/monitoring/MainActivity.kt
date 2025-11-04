@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.presentation.auth.BienvenidaFragment
 import com.thermal.monitoring.presentation.dashboard.DashboardOperadorFragment
+import com.thermal.monitoring.presentation.eventos.DetalleEventoFragment
 import com.thermal.monitoring.utils.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -20,20 +21,58 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var tokenManager: TokenManager
 
+    private var eventoIdDesdeNotificacion: Int? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         NotificationHelper.solicitarPermisoNotificaciones(this) { token ->
-            // Token obtenido, se enviara al backend despues del login
-            Log.d("MainActivity", "Token FCM obtenido: $token")
+            android.util.Log.d("MainActivity", "Token FCM obtenido: $token")
         }
+
+        // Verificar si viene de una notificacion
+        manejarIntentNotificacion(intent)
 
         if (savedInstanceState == null) {
             verificarSesion()
         }
     }
 
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        manejarIntentNotificacion(intent)
+    }
+
+    private fun manejarIntentNotificacion(intent: android.content.Intent?) {
+        intent?.let {
+            android.util.Log.d("MainActivity", "Intent recibido: $it")
+
+            var eventoId: Int? = null
+
+            try {
+                val intValue = it.getIntExtra(MyFirebaseMessagingService.EXTRA_EVENTO_ID, -1)
+                if (intValue != -1) {
+                    eventoId = intValue
+                }
+            } catch (e: ClassCastException) {
+            }
+
+            if (eventoId == null) {
+                try {
+                    val stringValue = it.getStringExtra(MyFirebaseMessagingService.EXTRA_EVENTO_ID)
+                    eventoId = stringValue?.toIntOrNull()
+                } catch (e: ClassCastException) {
+                }
+            }
+
+            eventoId?.let { id ->
+                eventoIdDesdeNotificacion = id
+                android.util.Log.d("MainActivity", "EventoId obtenido: $id")
+            }
+        }
+    }
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -41,7 +80,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         NotificationHelper.manejarResultadoPermiso(requestCode, grantResults) { token ->
-            Log.d("MainActivity", "Token FCM obtenido: $token")
+            android.util.Log.d("MainActivity", "Token FCM obtenido: $token")
         }
     }
 
@@ -60,6 +99,11 @@ class MainActivity : AppCompatActivity() {
                 ).show()
 
                 navegarADashboard(rol)
+
+                eventoIdDesdeNotificacion?.let { eventoId ->
+                    navegarADetalleEvento(eventoId)
+                    eventoIdDesdeNotificacion = null
+                }
             } else {
                 mostrarLogin()
             }
@@ -96,5 +140,17 @@ class MainActivity : AppCompatActivity() {
                 mostrarLogin()
             }
         }
+    }
+
+    private fun navegarADetalleEvento(eventoId: Int) {
+        supportFragmentManager.executePendingTransactions()
+
+        val fragment = DetalleEventoFragment.newInstance(eventoId)
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commit()
+
+        android.util.Log.d("MainActivity", "Navegando al detalle del evento: $eventoId")
     }
 }
