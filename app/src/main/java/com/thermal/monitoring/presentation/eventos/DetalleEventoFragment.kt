@@ -9,17 +9,22 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.thermal.monitoring.R
+import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.data.remote.EstatusEventoEnum
 import com.thermal.monitoring.data.remote.Evento
 import com.thermal.monitoring.data.remote.EventoDetalleOptimizado
 import com.thermal.monitoring.databinding.FragmentDetalleEventoBinding
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Locale
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class DetalleEventoFragment : Fragment() {
@@ -31,14 +36,17 @@ class DetalleEventoFragment : Fragment() {
     private var eventoId: Int = -1
     private var esOperador: Boolean = true
 
+    @Inject
+    lateinit var tokenManager: TokenManager
+
     companion object {
         private const val ARG_EVENTO_ID = "evento_id"
+        private const val ARG_ES_ADMIN = "es_admin"
 
-        fun newInstance(eventoId: Int): DetalleEventoFragment {
-            return DetalleEventoFragment().apply {
-                arguments = Bundle().apply {
-                    putInt(ARG_EVENTO_ID, eventoId)
-                }
+        fun newInstance(eventoId: Int, esAdmin: Boolean = false) = DetalleEventoFragment().apply {
+            arguments = Bundle().apply {
+                putInt(ARG_EVENTO_ID, eventoId)
+                putBoolean(ARG_ES_ADMIN, esAdmin)
             }
         }
     }
@@ -60,15 +68,22 @@ class DetalleEventoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupToolbar()
-        setupObservers()
+        eventoId = arguments?.getInt(ARG_EVENTO_ID) ?: -1
+        val esAdmin = arguments?.getBoolean(ARG_ES_ADMIN, false) ?: false
 
-        if (eventoId != -1) {
-            viewModel.cargarEvento(eventoId)
-        } else {
-            Toast.makeText(requireContext(), "Error: ID de evento invalido", Toast.LENGTH_SHORT).show()
-            parentFragmentManager.popBackStack()
+        lifecycleScope.launch {
+            val rol = tokenManager.obtenerRol().first()
+            esOperador = rol == "OPERADOR" && !esAdmin
         }
+
+        if (eventoId == -1) {
+            Toast.makeText(requireContext(), "Error: ID de evento invalido", Toast.LENGTH_SHORT).show()
+            activity?.onBackPressed()
+            return
+        }
+
+        setupObservers()
+        viewModel.cargarEvento(eventoId)
     }
 
     private fun setupToolbar() {

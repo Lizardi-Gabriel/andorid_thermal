@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.thermal.monitoring.data.local.TokenManager
+import com.thermal.monitoring.presentation.admin.DashboardAdminFragment
 import com.thermal.monitoring.presentation.auth.BienvenidaFragment
 import com.thermal.monitoring.presentation.dashboard.DashboardOperadorFragment
 import com.thermal.monitoring.presentation.eventos.DetalleEventoFragment
@@ -124,12 +125,10 @@ class MainActivity : AppCompatActivity() {
                     .commit()
             }
             "ADMIN" -> {
-                Toast.makeText(
-                    this,
-                    "Dashboard de Admin - Proximamente",
-                    Toast.LENGTH_LONG
-                ).show()
-                mostrarLogin()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, DashboardAdminFragment())
+                    .commit()
+
             }
             else -> {
                 Toast.makeText(

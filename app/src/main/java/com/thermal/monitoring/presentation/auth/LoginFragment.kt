@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.thermal.monitoring.R
 import com.thermal.monitoring.databinding.FragmentLoginBinding
+import com.thermal.monitoring.presentation.admin.DashboardAdminFragment
 import com.thermal.monitoring.presentation.dashboard.DashboardOperadorFragment
 import com.thermal.monitoring.utils.NotificationHelper
 import com.thermal.monitoring.utils.Resource
@@ -116,12 +117,9 @@ class LoginFragment : Fragment() {
                     .commit()
             }
             "ADMIN" -> {
-                // TODO: Implementar dashboard de admin
-                Toast.makeText(
-                    requireContext(),
-                    "Dashboard de Admin - Próximamente",
-                    Toast.LENGTH_LONG
-                ).show()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, DashboardAdminFragment())
+                    .commit()
             }
             else -> {
                 Toast.makeText(
