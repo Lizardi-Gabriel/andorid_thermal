@@ -10,6 +10,7 @@ import com.thermal.monitoring.data.repository.AuthRepository
 import com.thermal.monitoring.data.repository.EventoRepository
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,12 +34,17 @@ class DashboardOperadorViewModel @Inject constructor(
 
     private var usuarioIdActual: Int? = null
 
+    private var recargarEventosJob: Job? = null
+    private var logoutJob: Job? = null
+
 
     fun setUsuarioId(usuarioId: Int) {
         usuarioIdActual = usuarioId
     }
 
     fun recargarEventos() {
+        recargarEventosJob?.cancel()
+
         val filtro = _filtroActual.value
         val fecha = _fechaSeleccionada.value
 
@@ -50,7 +56,7 @@ class DashboardOperadorViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
+        recargarEventosJob = viewModelScope.launch {
             _eventosState.value = Resource.Loading()
             val result = eventoRepository.listarEventosOptimizado(
                 usuarioId = usuarioId,
@@ -115,10 +121,17 @@ class DashboardOperadorViewModel @Inject constructor(
     }
 
     fun logout() {
-        viewModelScope.launch {
+        logoutJob?.cancel()
+        logoutJob = viewModelScope.launch {
             authRepository.desactivarTokenFCM()
             authRepository.logout()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        recargarEventosJob?.cancel()
+        logoutJob?.cancel()
     }
 
     enum class FiltroEvento {
@@ -127,4 +140,3 @@ class DashboardOperadorViewModel @Inject constructor(
         MI_HISTORIAL
     }
 }
-

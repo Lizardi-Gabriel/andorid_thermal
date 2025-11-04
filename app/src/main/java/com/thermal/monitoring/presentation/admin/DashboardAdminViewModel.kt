@@ -11,6 +11,7 @@ import com.thermal.monitoring.data.repository.AuthRepository
 import com.thermal.monitoring.data.repository.EventoRepository
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,11 +27,14 @@ class DashboardAdminViewModel @Inject constructor(
     private val _estadisticasState = MutableLiveData<Resource<EstadisticasEventos>>()
     val estadisticasState: LiveData<Resource<EstadisticasEventos>> = _estadisticasState
 
-    // Filtros actuales
     private val _estatusFiltro = MutableLiveData<EstatusEventoEnum?>(null)
     private val _operadorFiltro = MutableLiveData<Int?>(null)
     private val _fechaInicioFiltro = MutableLiveData<String?>(null)
     private val _fechaFinFiltro = MutableLiveData<String?>(null)
+
+    private var cargarEstadisticasJob: Job? = null
+    private var cargarEventosJob: Job? = null
+    private var logoutJob: Job? = null
 
     init {
         cargarEstadisticas()
@@ -38,7 +42,8 @@ class DashboardAdminViewModel @Inject constructor(
     }
 
     fun cargarEstadisticas(fechaInicio: String? = null, fechaFin: String? = null) {
-        viewModelScope.launch {
+        cargarEstadisticasJob?.cancel()
+        cargarEstadisticasJob = viewModelScope.launch {
             _estadisticasState.value = Resource.Loading()
             val result = eventoRepository.obtenerEstadisticas(fechaInicio, fechaFin)
             _estadisticasState.value = result
@@ -46,7 +51,8 @@ class DashboardAdminViewModel @Inject constructor(
     }
 
     fun cargarEventos() {
-        viewModelScope.launch {
+        cargarEventosJob?.cancel()
+        cargarEventosJob = viewModelScope.launch {
             _eventosState.value = Resource.Loading()
             val result = eventoRepository.listarEventosOptimizado(
                 estatus = _estatusFiltro.value,
@@ -86,8 +92,16 @@ class DashboardAdminViewModel @Inject constructor(
     }
 
     fun logout() {
-        viewModelScope.launch {
+        logoutJob?.cancel()
+        logoutJob = viewModelScope.launch {
             authRepository.logout()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        cargarEstadisticasJob?.cancel()
+        cargarEventosJob?.cancel()
+        logoutJob?.cancel()
     }
 }
