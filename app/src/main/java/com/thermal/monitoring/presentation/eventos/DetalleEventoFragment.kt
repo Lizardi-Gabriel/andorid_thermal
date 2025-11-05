@@ -82,6 +82,7 @@ class DetalleEventoFragment : Fragment() {
             return
         }
 
+        setupToolbar()
         setupObservers()
         viewModel.cargarEvento(eventoId)
     }
