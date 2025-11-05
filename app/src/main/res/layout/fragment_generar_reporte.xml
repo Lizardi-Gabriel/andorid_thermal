@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/gris">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="0dp"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/white"
+            app:title="Generar Reporte"
+            app:titleTextColor="@color/black"
+            app:navigationIcon="@drawable/ic_menu"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:fillViewport="true"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="24dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Configurar Reporte PDF"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:layout_marginBottom="8dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Genera reportes detallados con estadisticas, graficas y analisis de calidad del aire"
+                            android:textSize="14sp"
+                            android:textColor="@color/gris"
+                            android:layout_marginBottom="24dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Rango de Fechas"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:layout_marginBottom="12dp"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSeleccionarRango"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="Seleccionar Rango de Fechas"
+                            android:textColor="@color/amarillo"
+                            app:strokeColor="@color/black"
+                            app:backgroundTint="@color/white" />
+
+                        <TextView
+                            android:id="@+id/tvRangoSeleccionado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sin rango seleccionado (todos los eventos)"
+                            android:textSize="14sp"
+                            android:textColor="@color/gris"
+                            android:layout_marginBottom="24dp"
+                            android:padding="8dp"
+                            android:background="@android:drawable/editbox_background"/>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/gris"
+                            android:layout_marginBottom="24dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="El reporte incluira:"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:layout_marginBottom="12dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="• Resumen ejecutivo con estadisticas generales"
+                            android:textSize="14sp"
+                            android:textColor="@color/gris"
+                            android:layout_marginBottom="4dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="• Grafica de distribucion de eventos por estatus"
+                            android:textSize="14sp"
+                            android:textColor="@color/gris"
+                            android:layout_marginBottom="4dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="• Analisis de calidad del aire con limites OMS"
+                            android:textSize="14sp"
+                            android:textColor="@color/gris"
+                            android:layout_marginBottom="4dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="• Grafica comparativa PM10, PM2.5 y PM1.0"
+                            android:textSize="14sp"
+                            android:textColor="@color/gris"
+                            android:layout_marginBottom="4dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="• Tabla detallada de eventos"
+                            android:textSize="14sp"
+                            android:textColor="@color/gris"
+                            android:layout_marginBottom="24dp"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnGenerar"
+                            android:layout_width="match_parent"
+                            android:layout_height="60dp"
+                            android:text="Generar Reporte PDF"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            app:backgroundTint="@color/amarillo"
+                            app:strokeColor="@color/gris" />
+
+                        <ProgressBar
+                            android:id="@+id/progressBar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginTop="16dp"
+                            android:visibility="gone"/>
+
+                        <TextView
+                            android:id="@+id/tvEstado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:textSize="14sp"
+                            android:textColor="@color/black"
+                            android:layout_marginTop="8dp"
+                            android:visibility="gone"/>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigationView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/drawer_menu_admin"/>
+
+</androidx.drawerlayout.widget.DrawerLayout>

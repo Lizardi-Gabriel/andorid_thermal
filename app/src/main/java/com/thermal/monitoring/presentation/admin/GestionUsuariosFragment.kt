@@ -76,8 +76,7 @@ class GestionUsuariosFragment : Fragment() {
                     // Ya estamos aqui
                 }
                 R.id.nav_generar_reporte -> {
-                    navegarADashboard()
-                    // El dashboard manejara abrir el dialogo de reporte
+                    navegarAGenerarReporte()
                 }
                 R.id.nav_perfil -> {
                     Toast.makeText(requireContext(), "Mi Perfil - Proximamente", Toast.LENGTH_SHORT).show()
@@ -89,6 +88,13 @@ class GestionUsuariosFragment : Fragment() {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
+    }
+
+    private fun navegarAGenerarReporte() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, GenerarReporteFragment())
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun cargarDatosUsuario() {

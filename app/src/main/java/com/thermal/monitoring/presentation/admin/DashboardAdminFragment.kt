@@ -82,7 +82,7 @@ class DashboardAdminFragment : Fragment() {
                     navegarAGestionUsuarios()
                 }
                 R.id.nav_generar_reporte -> {
-                    mostrarDialogoGenerarReporte()
+                    navegarAGenerarReporte()
                 }
                 R.id.nav_perfil -> {
                     Toast.makeText(requireContext(), "Mi Perfil - Proximamente", Toast.LENGTH_SHORT).show()
@@ -94,6 +94,13 @@ class DashboardAdminFragment : Fragment() {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
+    }
+
+    private fun navegarAGenerarReporte() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, GenerarReporteFragment())
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun mostrarDialogoGenerarReporte() {
@@ -112,11 +119,15 @@ class DashboardAdminFragment : Fragment() {
                 fechaFinSeleccionada = fechaFin
 
                 val formatoMostrar = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                val fechaInicioDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(fechaInicio)
-                val fechaFinDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(fechaFin)
+                val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-                dialogBinding.tvRangoSeleccionado.text =
-                    "Rango: ${formatoMostrar.format(fechaInicioDate)} - ${formatoMostrar.format(fechaFinDate)}"
+                val fechaInicioDate = formatoApi.parse(fechaInicio)
+                val fechaFinDate = formatoApi.parse(fechaFin)
+
+                if (fechaInicioDate != null && fechaFinDate != null) {
+                    dialogBinding.tvRangoSeleccionado.text =
+                        "Rango: ${formatoMostrar.format(fechaInicioDate)} - ${formatoMostrar.format(fechaFinDate)}"
+                }
             }
         }
 
