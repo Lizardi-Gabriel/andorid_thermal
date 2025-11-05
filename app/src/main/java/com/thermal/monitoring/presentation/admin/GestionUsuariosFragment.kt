@@ -1,55 +1,104 @@
 package com.thermal.monitoring.presentation.admin
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.thermal.monitoring.MainActivity
 import com.thermal.monitoring.R
+import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.data.remote.RolUsuarioEnum
 import com.thermal.monitoring.data.remote.UsuarioLista
 import com.thermal.monitoring.databinding.DialogCrearUsuarioBinding
-import com.thermal.monitoring.databinding.FragmentGestionUsuariosBinding
+import com.thermal.monitoring.databinding.FragmentGestionUsuariosDrawerBinding
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class GestionUsuariosFragment : Fragment() {
 
-    private var _binding: FragmentGestionUsuariosBinding? = null
+    private var _binding: FragmentGestionUsuariosDrawerBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: GestionUsuariosViewModel by viewModels()
     private lateinit var usuarioAdapter: UsuarioAdapter
+
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentGestionUsuariosBinding.inflate(inflater, container, false)
+        _binding = FragmentGestionUsuariosDrawerBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupToolbar()
+        setupDrawer()
         setupRecyclerView()
         setupListeners()
         setupObservers()
+        cargarDatosUsuario()
+
+        binding.navigationView.setCheckedItem(R.id.nav_gestion_usuarios)
 
         viewModel.cargarUsuarios()
     }
 
-    private fun setupToolbar() {
+    private fun setupDrawer() {
         binding.toolbar.setNavigationOnClickListener {
-            parentFragmentManager.popBackStack()
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        binding.navigationView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_dashboard -> {
+                    navegarADashboard()
+                }
+                R.id.nav_gestion_usuarios -> {
+                    // Ya estamos aqui
+                }
+                R.id.nav_generar_reporte -> {
+                    navegarADashboard()
+                    // El dashboard manejara abrir el dialogo de reporte
+                }
+                R.id.nav_perfil -> {
+                    Toast.makeText(requireContext(), "Mi Perfil - Proximamente", Toast.LENGTH_SHORT).show()
+                }
+                R.id.nav_logout -> {
+                    cerrarSesion()
+                }
+            }
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+            true
+        }
+    }
+
+    private fun cargarDatosUsuario() {
+        lifecycleScope.launch {
+            val username = tokenManager.obtenerUsername().first()
+            val rol = tokenManager.obtenerRol().first()
+
+            val headerView = binding.navigationView.getHeaderView(0)
+            headerView.findViewById<TextView>(R.id.tvNombreUsuario).text = username ?: "Administrador"
+            headerView.findViewById<TextView>(R.id.tvRolUsuario).text = rol ?: "Admin"
         }
     }
 
@@ -206,6 +255,19 @@ class GestionUsuariosFragment : Fragment() {
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun navegarADashboard() {
+        parentFragmentManager.popBackStack()
+    }
+
+    private fun cerrarSesion() {
+        lifecycleScope.launch {
+            tokenManager.limpiarDatos()
+        }
+        val intent = Intent(requireContext(), MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
     }
 
     override fun onDestroyView() {

@@ -63,6 +63,9 @@ class DashboardAdminFragment : Fragment() {
         // Establecer fecha de hoy en el boton
         val hoy = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
         binding.btnFiltrarFechas.text = hoy
+
+        binding.navigationView.setCheckedItem(R.id.nav_dashboard)
+
     }
 
     private fun setupDrawer() {
@@ -454,4 +457,44 @@ class DashboardAdminFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    override fun onResume() {
+        super.onResume()
+
+        // Asegurar que siempre haya fecha de hoy si no hay filtros
+        viewModel.establecerFechaHoySiNoHayFiltro()
+
+        // Actualizar UI del botón
+        viewModel.fechaInicioFiltro.value?.let { fechaInicio ->
+            viewModel.fechaFinFiltro.value?.let { fechaFin ->
+                if (fechaInicio == fechaFin) {
+                    // Es un solo día
+                    val formatoMostrar = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    try {
+                        val fecha = formatoApi.parse(fechaInicio)
+                        binding.btnFiltrarFechas.text = formatoMostrar.format(fecha!!)
+                    } catch (e: Exception) {
+                        binding.btnFiltrarFechas.text = fechaInicio
+                    }
+                } else {
+                    // Es un rango
+                    val formatoMostrar = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+                    val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    try {
+                        val fechaInicioDate = formatoApi.parse(fechaInicio)
+                        val fechaFinDate = formatoApi.parse(fechaFin)
+                        binding.btnFiltrarFechas.text =
+                            "${formatoMostrar.format(fechaInicioDate!!)} - ${formatoMostrar.format(fechaFinDate!!)}"
+                    } catch (e: Exception) {
+                        binding.btnFiltrarFechas.text = "$fechaInicio - $fechaFin"
+                    }
+                }
+            }
+        }
+
+        binding.navigationView.setCheckedItem(R.id.nav_dashboard)
+
+    }
+
 }

@@ -38,6 +38,9 @@ class DashboardAdminViewModel @Inject constructor(
     private var cargarEventosJob: Job? = null
     private var logoutJob: Job? = null
 
+    val fechaInicioFiltro: LiveData<String?> = _fechaInicioFiltro
+    val fechaFinFiltro: LiveData<String?> = _fechaFinFiltro
+
     init {
         val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         _fechaInicioFiltro.value = hoy
@@ -110,4 +113,16 @@ class DashboardAdminViewModel @Inject constructor(
         cargarEventosJob?.cancel()
         logoutJob?.cancel()
     }
+
+    fun establecerFechaHoySiNoHayFiltro() {
+        if (_fechaInicioFiltro.value == null && _fechaFinFiltro.value == null) {
+            val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            _fechaInicioFiltro.value = hoy
+            _fechaFinFiltro.value = hoy
+            cargarEventos()
+            cargarEstadisticas(hoy, hoy)
+        }
+    }
+
+
 }
