@@ -65,6 +65,9 @@ class DashboardOperadorFragment : Fragment() {
         // Establecer fecha de hoy en el boton al iniciar
         val hoy = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
         binding.btnSeleccionarFecha.text = hoy
+
+        binding.navigationView.setCheckedItem(R.id.nav_dashboard)
+
     }
 
     private fun setupDrawer() {
@@ -266,6 +269,9 @@ class DashboardOperadorFragment : Fragment() {
             }
             viewModel.recargarEventos()
         }
+
+        binding.navigationView.setCheckedItem(R.id.nav_dashboard)
+
     }
 }
 
