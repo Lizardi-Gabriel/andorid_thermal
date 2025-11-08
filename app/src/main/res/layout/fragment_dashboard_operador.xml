@@ -144,6 +144,7 @@
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/drawer_menu"
         app:itemBackground="@drawable/nav_item_background_selector"
+        app:itemTextColor="@drawable/nav_item_text_selector"
         />
 
 </androidx.drawerlayout.widget.DrawerLayout>
