@@ -46,9 +46,9 @@ class LoginFragment : Fragment() {
             viewModel.login(username, password)
         }
 
-        binding.tvRegistro.setOnClickListener {
-            navegarARegistro()
-        }
+//        binding.tvRegistro.setOnClickListener {
+//            navegarARegistro()
+//        }
 
         binding.ivBack.setOnClickListener {
             parentFragmentManager.popBackStack()
