@@ -131,7 +131,7 @@ interface AdminService {
         @Query("fecha_fin") fechaFin: String? = null
     ): Response<okhttp3.ResponseBody>
 
-    @GET("admin/usuarios/{usuario_id}/estadisticas")
+    @GET("estadisticas/{usuario_id}")
     suspend fun obtenerEstadisticasUsuario(
         @Path("usuario_id") usuarioId: Int
     ): Response<EstadisticasUsuario>
