@@ -78,7 +78,7 @@ class DetalleEventoFragment : Fragment() {
 
         if (eventoId == -1) {
             Toast.makeText(requireContext(), "Error: ID de evento invalido", Toast.LENGTH_SHORT).show()
-            activity?.onBackPressed()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
             return
         }
 
