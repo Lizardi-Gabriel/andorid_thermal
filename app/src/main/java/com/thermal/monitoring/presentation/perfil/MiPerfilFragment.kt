@@ -6,8 +6,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.thermal.monitoring.MainActivity
 import com.thermal.monitoring.R
@@ -18,6 +20,7 @@ import com.thermal.monitoring.presentation.admin.DashboardAdminFragment
 import com.thermal.monitoring.presentation.admin.GenerarReporteFragment
 import com.thermal.monitoring.presentation.admin.GestionUsuariosFragment
 import com.thermal.monitoring.presentation.dashboard.DashboardOperadorFragment
+import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -31,7 +34,7 @@ class MiPerfilFragment : Fragment() {
 
     @Inject
     lateinit var tokenManager: TokenManager
-
+    private val viewModel: MiPerfilViewModel by viewModels()
     private var rolUsuario: String? = null
 
     override fun onCreateView(
@@ -46,10 +49,10 @@ class MiPerfilFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        cargarDatosUsuario()
         setupDrawer()
+        setupObservers()
+        cargarDatosUsuario()
     }
-
 
     private fun cargarDatosUsuario() {
         lifecycleScope.launch {
@@ -83,7 +86,11 @@ class MiPerfilFragment : Fragment() {
 
                 // Mostrar estadisticas para operador
                 binding.cardEstadisticas.visibility = View.VISIBLE
-                cargarEstadisticasOperador(usuarioId)
+
+                // Cargar estadisticas desde el backend
+                if (usuarioId != null) {
+                    viewModel.cargarEstadisticasUsuario(usuarioId)
+                }
             }
 
             // Cargar datos en el header del drawer
@@ -98,13 +105,34 @@ class MiPerfilFragment : Fragment() {
         }
     }
 
+    private fun setupObservers() {
+        viewModel.estadisticasState.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    // Ya hay un progressBar global
+                }
+                is Resource.Success -> {
+                    val estadisticas = resource.data
+                    if (estadisticas != null) {
+                        binding.tvTotalGestionados.text = estadisticas.totalEventosGestionados.toString()
+                        binding.tvConfirmados.text = estadisticas.eventosConfirmados.toString()
+                        binding.tvDescartados.text = estadisticas.eventosDescartados.toString()
+                    }
+                }
+                is Resource.Error -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Error al cargar estadisticas: ${resource.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
 
-
-    private fun cargarEstadisticasOperador(usuarioId: Int?) {
-        // TODO: Implementar llamada al backend para obtener estadisticas del operador
-        binding.tvTotalGestionados.text = "0"
-        binding.tvConfirmados.text = "0"
-        binding.tvDescartados.text = "0"
+                    // Mostrar valores en 0 si hay error
+                    binding.tvTotalGestionados.text = "0"
+                    binding.tvConfirmados.text = "0"
+                    binding.tvDescartados.text = "0"
+                }
+            }
+        }
     }
 
     private fun setupDrawer() {
@@ -143,7 +171,6 @@ class MiPerfilFragment : Fragment() {
             true
         }
     }
-
 
     private fun navegarADashboard() {
         if (rolUsuario == RolUsuarioEnum.ADMIN.name) {
