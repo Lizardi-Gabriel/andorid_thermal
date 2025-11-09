@@ -232,3 +232,11 @@ data class UsuarioUpdateRequest(
     val password: String?,
     val rol: RolUsuarioEnum?
 )
+
+data class EstadisticasUsuario(
+    @SerializedName("usuario_id") val usuarioId: Int,
+    @SerializedName("total_eventos_gestionados") val totalEventosGestionados: Int,
+    @SerializedName("eventos_confirmados") val eventosConfirmados: Int,
+    @SerializedName("eventos_descartados") val eventosDescartados: Int
+)
+

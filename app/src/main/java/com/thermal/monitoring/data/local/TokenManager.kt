@@ -23,6 +23,7 @@ class TokenManager @Inject constructor(
         private val USERNAME_KEY = stringPreferencesKey("username")
         private val ROLE_KEY = stringPreferencesKey("user_role")
         private val USER_ID_KEY = stringPreferencesKey("user_id")
+        private val CORREO_KEY = stringPreferencesKey("correo")
     }
 
     // Guardar token y datos del usuario
@@ -32,11 +33,12 @@ class TokenManager @Inject constructor(
         }
     }
 
-    suspend fun guardarDatosUsuario(username: String, role: String, userId: Int) {
+    suspend fun guardarDatosUsuario(username: String, role: String, userId: Int, correo: String) {
         context.dataStore.edit { preferences ->
             preferences[USERNAME_KEY] = username
             preferences[ROLE_KEY] = role
             preferences[USER_ID_KEY] = userId.toString()
+            preferences[CORREO_KEY] = correo
         }
     }
 
@@ -58,6 +60,13 @@ class TokenManager @Inject constructor(
     fun obtenerRol(): Flow<String?> {
         return context.dataStore.data.map { preferences ->
             preferences[ROLE_KEY]
+        }
+    }
+
+    // Obtener correo
+    fun obtenerCorreo(): Flow<String?> {
+        return context.dataStore.data.map { preferences ->
+            preferences[CORREO_KEY]
         }
     }
 

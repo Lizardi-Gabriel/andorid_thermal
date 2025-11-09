@@ -1,6 +1,7 @@
 package com.thermal.monitoring.data.repository
 
 import com.thermal.monitoring.data.remote.AdminService
+import com.thermal.monitoring.data.remote.EstadisticasUsuario
 import com.thermal.monitoring.data.remote.RolUsuarioEnum
 import com.thermal.monitoring.data.remote.Usuario
 import com.thermal.monitoring.data.remote.UsuarioCreateRequest
@@ -106,10 +107,7 @@ class AdminRepository @Inject constructor(
         }
     }
 
-    suspend fun generarReportePDF(
-        fechaInicio: String? = null,
-        fechaFin: String? = null
-    ): Resource<ResponseBody> {
+    suspend fun generarReportePDF( fechaInicio: String? = null, fechaFin: String? = null ): Resource<ResponseBody> {
         return try {
             val response = adminService.generarReportePDF(fechaInicio, fechaFin)
 
@@ -122,4 +120,19 @@ class AdminRepository @Inject constructor(
             Resource.Error("Error de conexion: ${e.localizedMessage}")
         }
     }
+
+    suspend fun obtenerEstadisticasUsuario(usuarioId: Int): Resource<EstadisticasUsuario> {
+        return try {
+            val response = adminService.obtenerEstadisticasUsuario(usuarioId)
+
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error("Error al obtener estadisticas")
+            }
+        } catch (e: Exception) {
+            Resource.Error("Error de conexion: ${e.localizedMessage}")
+        }
+    }
+
 }

@@ -21,6 +21,7 @@ import com.thermal.monitoring.databinding.FragmentDashboardOperadorBinding
 import com.thermal.monitoring.presentation.eventos.DetalleEventoFragment
 import com.thermal.monitoring.presentation.eventos.EventoAdapter
 import com.thermal.monitoring.presentation.eventos.EventoAdapterOptimizado
+import com.thermal.monitoring.presentation.perfil.MiPerfilFragment
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -87,7 +88,7 @@ class DashboardOperadorFragment : Fragment() {
                     viewModel.cargarMiHistorial()
                 }
                 R.id.nav_perfil -> {
-                    Toast.makeText(requireContext(), "Mi Perfil - Proximamente", Toast.LENGTH_SHORT).show()
+                    navegarAMiPerfil()
                 }
                 R.id.nav_logout -> {
                     cerrarSesion()
@@ -96,6 +97,13 @@ class DashboardOperadorFragment : Fragment() {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
+    }
+
+    private fun navegarAMiPerfil() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, MiPerfilFragment())
+            .addToBackStack(null)
+            .commit()
     }
 
 

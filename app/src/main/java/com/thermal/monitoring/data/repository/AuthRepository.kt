@@ -36,7 +36,8 @@ class AuthRepository @Inject constructor(
                     tokenManager.guardarDatosUsuario(
                         username = usuario.nombreUsuario,
                         role = usuario.rol.name,
-                        userId = usuario.usuarioId
+                        userId = usuario.usuarioId,
+                        correo = usuario.correoElectronico
                     )
 
                     Resource.Success(usuario)

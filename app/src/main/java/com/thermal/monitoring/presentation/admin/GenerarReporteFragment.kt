@@ -16,6 +16,7 @@ import com.thermal.monitoring.MainActivity
 import com.thermal.monitoring.R
 import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.databinding.FragmentGenerarReporteBinding
+import com.thermal.monitoring.presentation.perfil.MiPerfilFragment
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -75,7 +76,7 @@ class GenerarReporteFragment : Fragment() {
 
                 }
                 R.id.nav_perfil -> {
-                    Toast.makeText(requireContext(), "Mi Perfil - Proximamente", Toast.LENGTH_SHORT).show()
+                    navegarAMiPerfil()
                 }
                 R.id.nav_logout -> {
                     cerrarSesion()
@@ -84,6 +85,13 @@ class GenerarReporteFragment : Fragment() {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
+    }
+
+    private fun navegarAMiPerfil() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, MiPerfilFragment())
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun cargarDatosUsuario() {
