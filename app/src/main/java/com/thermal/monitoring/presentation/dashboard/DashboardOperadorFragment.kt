@@ -136,6 +136,60 @@ class DashboardOperadorFragment : Fragment() {
             Toast.makeText(requireContext(), "Filtro de fecha limpiado", Toast.LENGTH_SHORT).show()
             true
         }
+
+        binding.btnDiaAnterior.setOnClickListener {
+            navegarDiaAnterior()
+        }
+
+        binding.btnDiaSiguiente.setOnClickListener {
+            navegarDiaSiguiente()
+        }
+    }
+
+    private fun navegarDiaAnterior() {
+        val fechaActual = viewModel.fechaSeleccionada.value
+
+        val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val calendar = Calendar.getInstance()
+
+        if (fechaActual != null) {
+            try {
+                val fecha = formatoApi.parse(fechaActual)
+                calendar.time = fecha!!
+            } catch (e: Exception) {
+                // Si hay error, usar hoy
+                calendar.time = Date()
+            }
+        }
+
+        // Restar un dia
+        calendar.add(Calendar.DAY_OF_MONTH, -1)
+
+        val nuevaFecha = formatoApi.format(calendar.time)
+        viewModel.cargarEventosPorFecha(nuevaFecha)
+    }
+
+    private fun navegarDiaSiguiente() {
+        val fechaActual = viewModel.fechaSeleccionada.value
+
+        val formatoApi = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val calendar = Calendar.getInstance()
+
+        if (fechaActual != null) {
+            try {
+                val fecha = formatoApi.parse(fechaActual)
+                calendar.time = fecha!!
+            } catch (e: Exception) {
+                // Si hay error, usar hoy
+                calendar.time = Date()
+            }
+        }
+
+        // Sumar un dia
+        calendar.add(Calendar.DAY_OF_MONTH, 1)
+
+        val nuevaFecha = formatoApi.format(calendar.time)
+        viewModel.cargarEventosPorFecha(nuevaFecha)
     }
 
     private fun setupObservers() {
