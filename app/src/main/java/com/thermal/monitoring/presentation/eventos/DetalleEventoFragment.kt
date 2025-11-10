@@ -206,14 +206,17 @@ class DetalleEventoFragment : Fragment() {
                 EstatusEventoEnum.PENDIENTE -> {
                     text = "Pendiente"
                     setChipBackgroundColorResource(R.color.evento_pendiente)
+                    setTextColor(resources.getColor(R.color.white, null))
                 }
                 EstatusEventoEnum.CONFIRMADO -> {
                     text = "Confirmado"
                     setChipBackgroundColorResource(R.color.evento_confirmado)
+                    setTextColor(resources.getColor(R.color.white, null))
                 }
                 EstatusEventoEnum.DESCARTADO -> {
                     text = "Descartado"
                     setChipBackgroundColorResource(R.color.evento_descartado)
+                    setTextColor(resources.getColor(R.color.white, null))
                 }
             }
         }
