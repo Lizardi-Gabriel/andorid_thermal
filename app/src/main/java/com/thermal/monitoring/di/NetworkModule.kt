@@ -4,7 +4,6 @@ import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.data.remote.AdminService
 import com.thermal.monitoring.data.remote.AuthService
 import com.thermal.monitoring.data.remote.EventoService
-import com.thermal.monitoring.data.remote.LogService
 import com.thermal.monitoring.utils.Config
 import dagger.Module
 import dagger.Provides
@@ -92,16 +91,13 @@ object NetworkModule {
         return retrofit.create(EventoService::class.java)
     }
 
-    @Provides
-    @Singleton
-    fun provideLogService(retrofit: Retrofit): LogService {
-        return retrofit.create(LogService::class.java)
-    }
 
     @Provides
     @Singleton
     fun provideAdminService(retrofit: Retrofit): AdminService {
         return retrofit.create(AdminService::class.java)
     }
+
+
 
 }

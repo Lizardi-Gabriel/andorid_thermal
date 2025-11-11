@@ -28,6 +28,25 @@ interface AuthService {
         @Body tokenData: TokenFCMRequest
     ): Response<TokenFCMResponse>
 
+
+
+    @POST("auth/forgot-password")
+    suspend fun solicitarRecuperacionPassword(
+        @Body solicitud: SolicitudRecuperacionPassword
+    ): Response<Map<String, String>>
+
+    @GET("auth/validate-reset-token/{token}")
+    suspend fun validarTokenRecuperacion(
+        @Path("token") token: String
+    ): Response<ValidarTokenResponse>
+
+    @POST("auth/reset-password")
+    suspend fun restablecerPassword(
+        @Body datos: RestablecerPassword
+    ): Response<RestablecerPasswordResponse>
+
+
+
 }
 
 interface EventoService {
@@ -81,20 +100,7 @@ interface EventoService {
     ): Response<EstadisticasEventos>
 }
 
-interface LogService {
-    // Obtener logs con filtros opcionales
-    @GET("logs")
-    suspend fun listarLogs(
-        @Query("fecha") fecha: String? = null,
-        @Query("tipo") tipo: TipoLogEnum? = null
-    ): Response<List<LogSistema>>
 
-    // Crear nuevo log
-    @POST("logs")
-    suspend fun crearLog(
-        @Body log: LogSistemaCreate
-    ): Response<LogSistema>
-}
 
 
 interface AdminService {
@@ -137,3 +143,5 @@ interface AdminService {
     ): Response<EstadisticasUsuario>
 
 }
+
+

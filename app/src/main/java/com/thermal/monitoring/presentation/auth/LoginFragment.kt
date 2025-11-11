@@ -54,6 +54,17 @@ class LoginFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
+        binding.btnOlvidePassword.setOnClickListener {
+            navegarAOlvidePassword()
+        }
+
+    }
+
+    private fun navegarAOlvidePassword() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, OlvidePasswordFragment())
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun setupObservers() {

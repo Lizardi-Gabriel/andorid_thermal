@@ -106,13 +106,7 @@ data class EventoCreate(
     val estatus: EstatusEventoEnum = EstatusEventoEnum.PENDIENTE
 )
 
-// Log del Sistema
-data class LogSistema(
-    @SerializedName("log_id") val logId: Int,
-    val tipo: TipoLogEnum,
-    val mensaje: String,
-    @SerializedName("hora_log") val horaLog: String
-)
+
 
 data class LogSistemaCreate(
     val tipo: TipoLogEnum = TipoLogEnum.INFO,
@@ -166,6 +160,10 @@ data class EventoOptimizado(
     @SerializedName("imagen_preview") val imagenPreview: Imagen?
 )
 
+
+
+
+
 // Evento Detalle Optimizado (para detalle con todas las imágenes)
 data class EventoDetalleOptimizado(
     @SerializedName("evento_id") val eventoId: Int,
@@ -208,6 +206,11 @@ data class EstadisticasEventos(
 )
 
 
+
+
+
+
+
 // Gestion de Usuarios (Admin)
 data class UsuarioLista(
     @SerializedName("usuario_id") val usuarioId: Int,
@@ -239,4 +242,33 @@ data class EstadisticasUsuario(
     @SerializedName("eventos_confirmados") val eventosConfirmados: Int,
     @SerializedName("eventos_descartados") val eventosDescartados: Int
 )
+
+
+
+
+
+
+
+
+// Recuperacion de contraseña
+data class SolicitudRecuperacionPassword(
+    @SerializedName("correo_electronico") val correoElectronico: String
+)
+
+data class ValidarTokenResponse(
+    val valido: Boolean,
+    val mensaje: String
+)
+
+data class RestablecerPassword(
+    val token: String,
+    @SerializedName("nueva_password") val nuevaPassword: String
+)
+
+data class RestablecerPasswordResponse(
+    val exito: Boolean,
+    val mensaje: String
+)
+
+
 
