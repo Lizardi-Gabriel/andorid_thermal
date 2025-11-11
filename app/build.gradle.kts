@@ -15,16 +15,15 @@ android {
         applicationId = "com.thermal.monitoring"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.2"
+        versionCode = 3
+        versionName = "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
