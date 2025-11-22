@@ -4,6 +4,7 @@ import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.data.remote.AdminService
 import com.thermal.monitoring.data.remote.AuthService
 import com.thermal.monitoring.data.remote.EventoService
+import com.thermal.monitoring.data.remote.ProfileService
 import com.thermal.monitoring.utils.Config
 import dagger.Module
 import dagger.Provides
@@ -54,6 +55,7 @@ object NetworkModule {
         }
     }
 
+    /*
     @Provides
     @Singleton
     fun provideOkHttpClient(
@@ -63,6 +65,48 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
+            .connectTimeout(Config.CONNECT_TIMEOUT, TimeUnit.SECONDS)
+            .readTimeout(Config.READ_TIMEOUT, TimeUnit.SECONDS)
+            .writeTimeout(Config.WRITE_TIMEOUT, TimeUnit.SECONDS)
+            .build()
+    }
+    */
+    /**
+     * modificado para control de logs
+     * @param authInterceptor interceptor para agregar el token de autenticación
+     * @return OkHttpClient
+     * @see Interceptor
+     */
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        authInterceptor: Interceptor
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor { chain ->
+                val request = chain.request()
+                android.util.Log.d("API_LOG", "Request --> ${request.method} ${request.url}")
+                try {
+                    if (request.body != null) {
+                        val buffer = okio.Buffer()
+                        request.body!!.writeTo(buffer)
+                        android.util.Log.d("API_LOG", "Body: ${buffer.readUtf8()}")
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.d("API_LOG", "Body: (no se pudo leer)")
+                }
+                val response = chain.proceed(request)
+
+                var processTime = response.header("x-process-time")
+                if (processTime == null) {
+                    processTime = "error"
+                }
+
+                android.util.Log.d("API_LOG", "Response <-- ${response.code} ${response.message} $processTime ${request.url}")
+
+                response
+            }
             .connectTimeout(Config.CONNECT_TIMEOUT, TimeUnit.SECONDS)
             .readTimeout(Config.READ_TIMEOUT, TimeUnit.SECONDS)
             .writeTimeout(Config.WRITE_TIMEOUT, TimeUnit.SECONDS)
@@ -96,6 +140,13 @@ object NetworkModule {
     @Singleton
     fun provideAdminService(retrofit: Retrofit): AdminService {
         return retrofit.create(AdminService::class.java)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideProfileService(retrofit: Retrofit): ProfileService {
+        return retrofit.create(ProfileService::class.java)
     }
 
 

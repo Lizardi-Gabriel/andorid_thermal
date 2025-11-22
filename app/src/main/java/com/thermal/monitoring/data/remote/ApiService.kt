@@ -12,12 +12,9 @@ interface AuthService {
         @Field("password") password: String
     ): Response<TokenResponse>
 
-    // Endpoint publico para crear usuario
-    @POST("usuarios")
-    suspend fun crearUsuario(
-        @Body usuario: UsuarioCreate
-    ): Response<Usuario>
 
+
+    // login
     // Endpoint protegido para obtener usuario actual
     @GET("usuarios/me")
     suspend fun obtenerUsuarioActual(): Response<Usuario>
@@ -35,36 +32,9 @@ interface AuthService {
         @Body solicitud: SolicitudRecuperacionPassword
     ): Response<Map<String, String>>
 
-    @GET("auth/validate-reset-token/{token}")
-    suspend fun validarTokenRecuperacion(
-        @Path("token") token: String
-    ): Response<ValidarTokenResponse>
-
-    @POST("auth/reset-password")
-    suspend fun restablecerPassword(
-        @Body datos: RestablecerPassword
-    ): Response<RestablecerPasswordResponse>
-
-
-
 }
 
 interface EventoService {
-    @GET("eventos")
-    suspend fun listarEventos(
-        @Query("skip") skip: Int = 0,
-        @Query("limit") limit: Int = 25
-    ): Response<List<Evento>>
-
-    @GET("eventos/fecha/{fecha_evento}")
-    suspend fun listarEventosPorFecha(
-        @Path("fecha_evento") fechaEvento: String
-    ): Response<List<Evento>>
-
-    @GET("eventos/{evento_id}")
-    suspend fun obtenerEvento(
-        @Path("evento_id") eventoId: Int
-    ): Response<Evento>
 
     @PUT("eventos/{evento_id}/status")
     suspend fun actualizarEstatusEvento(
@@ -72,10 +42,7 @@ interface EventoService {
         @Query("estatus") estatus: String? = null
     ): Response<Evento>
 
-    @POST("eventos")
-    suspend fun crearEvento(
-        @Body evento: EventoCreate
-    ): Response<Evento>
+
 
     // endpoints optimizados
     @GET("eventosfront/optimizado")
@@ -113,21 +80,27 @@ interface AdminService {
         @Body usuario: UsuarioCreateRequest
     ): Response<Usuario>
 
+
+    // TODO: implementar
     @PUT("admin/usuarios/{usuario_id}")
     suspend fun actualizarUsuario(
         @Path("usuario_id") usuarioId: Int,
         @Body usuario: UsuarioUpdateRequest
     ): Response<Usuario>
 
+    @GET("admin/usuarios/{usuario_id}")
+    suspend fun obtenerUsuario(
+        @Path("usuario_id") usuarioId: Int
+    ): Response<Usuario>
+
+
+
+
     @DELETE("admin/usuarios/{usuario_id}")
     suspend fun eliminarUsuario(
         @Path("usuario_id") usuarioId: Int
     ): Response<Unit>
 
-    @GET("admin/usuarios/{usuario_id}")
-    suspend fun obtenerUsuario(
-        @Path("usuario_id") usuarioId: Int
-    ): Response<Usuario>
 
     // Reportes PDF
     @GET("admin/reportes/generar-pdf")
@@ -137,10 +110,18 @@ interface AdminService {
         @Query("fecha_fin") fechaFin: String? = null
     ): Response<okhttp3.ResponseBody>
 
+
+}
+
+
+interface ProfileService {
+
+    // operador puede ver sus estadisticas
     @GET("estadisticas/{usuario_id}")
     suspend fun obtenerEstadisticasUsuario(
         @Path("usuario_id") usuarioId: Int
     ): Response<EstadisticasUsuario>
+
 
 }
 

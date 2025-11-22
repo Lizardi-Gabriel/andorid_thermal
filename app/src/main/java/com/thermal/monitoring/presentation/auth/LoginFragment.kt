@@ -113,12 +113,6 @@ class LoginFragment : Fragment() {
         binding.etPassword.isEnabled = !mostrar
     }
 
-    private fun navegarARegistro() {
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, RegistroFragment())
-            .addToBackStack("registro")
-            .commit()
-    }
 
     private fun navegarADashboard(rol: String?) {
         when (rol) {

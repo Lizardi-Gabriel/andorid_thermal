@@ -21,17 +21,6 @@ enum class TipoMedicionEnum {
     @SerializedName("pendiente") PENDIENTE
 }
 
-enum class TipoLogEnum {
-    @SerializedName("info") INFO,
-    @SerializedName("advertencia") ADVERTENCIA,
-    @SerializedName("error") ERROR
-}
-
-// Request/Response para autenticacion
-data class LoginRequest(
-    val username: String,
-    val password: String
-)
 
 data class TokenResponse(
     @SerializedName("access_token") val accessToken: String,
@@ -44,13 +33,6 @@ data class Usuario(
     @SerializedName("nombre_usuario") val nombreUsuario: String,
     @SerializedName("correo_electronico") val correoElectronico: String,
     val rol: RolUsuarioEnum
-)
-
-data class UsuarioCreate(
-    @SerializedName("nombre_usuario") val nombreUsuario: String,
-    @SerializedName("correo_electronico") val correoElectronico: String,
-    val password: String,
-    val rol: RolUsuarioEnum = RolUsuarioEnum.OPERADOR
 )
 
 // Deteccion
@@ -100,23 +82,8 @@ data class Evento(
     @SerializedName("registros_calidad_aire") val registrosCalidadAire: List<CalidadAire> = emptyList()
 )
 
-data class EventoCreate(
-    @SerializedName("fecha_evento") val fechaEvento: String,
-    val descripcion: String? = null,
-    val estatus: EstatusEventoEnum = EstatusEventoEnum.PENDIENTE
-)
 
 
-
-data class LogSistemaCreate(
-    val tipo: TipoLogEnum = TipoLogEnum.INFO,
-    val mensaje: String
-)
-
-// Respuestas genericas de error
-data class ErrorResponse(
-    val detail: String
-)
 
 // Token FCM
 data class TokenFCMRequest(
@@ -236,6 +203,10 @@ data class UsuarioUpdateRequest(
     val rol: RolUsuarioEnum?
 )
 
+
+/**
+ * usuario consulta su perfil
+ * */
 data class EstadisticasUsuario(
     @SerializedName("usuario_id") val usuarioId: Int,
     @SerializedName("total_eventos_gestionados") val totalEventosGestionados: Int,
@@ -246,29 +217,13 @@ data class EstadisticasUsuario(
 
 
 
-
-
-
-
-// Recuperacion de contraseña
+/**
+ * Recuperacion de contraseña
+ * */
 data class SolicitudRecuperacionPassword(
     @SerializedName("correo_electronico") val correoElectronico: String
 )
 
-data class ValidarTokenResponse(
-    val valido: Boolean,
-    val mensaje: String
-)
-
-data class RestablecerPassword(
-    val token: String,
-    @SerializedName("nueva_password") val nuevaPassword: String
-)
-
-data class RestablecerPasswordResponse(
-    val exito: Boolean,
-    val mensaje: String
-)
 
 
 

@@ -4,7 +4,6 @@ import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.data.remote.AuthService
 import com.thermal.monitoring.data.remote.TokenFCMRequest
 import com.thermal.monitoring.data.remote.Usuario
-import com.thermal.monitoring.data.remote.UsuarioCreate
 import com.thermal.monitoring.utils.Resource
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,39 +51,6 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    // Crear nuevo usuario
-    suspend fun crearUsuario(usuarioCreate: UsuarioCreate): Resource<Usuario> {
-        return try {
-            val response = authService.crearUsuario(usuarioCreate)
-
-            if (response.isSuccessful && response.body() != null) {
-                Resource.Success(response.body()!!)
-            } else {
-                val errorMsg = when (response.code()) {
-                    400 -> "El usuario o correo ya existe"
-                    else -> "Error al crear usuario"
-                }
-                Resource.Error(errorMsg)
-            }
-        } catch (e: Exception) {
-            Resource.Error("Error de conexión: ${e.localizedMessage}")
-        }
-    }
-
-    // Obtener usuario actual
-    suspend fun obtenerUsuarioActual(): Resource<Usuario> {
-        return try {
-            val response = authService.obtenerUsuarioActual()
-
-            if (response.isSuccessful && response.body() != null) {
-                Resource.Success(response.body()!!)
-            } else {
-                Resource.Error("No se pudo obtener el usuario")
-            }
-        } catch (e: Exception) {
-            Resource.Error("Error de conexión: ${e.localizedMessage}")
-        }
-    }
 
     // Cerrar sesion
     suspend fun logout() {
