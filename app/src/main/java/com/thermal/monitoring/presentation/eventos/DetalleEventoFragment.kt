@@ -2,11 +2,15 @@ package com.thermal.monitoring.presentation.eventos
 
 import android.os.Build
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -260,25 +264,66 @@ class DetalleEventoFragment : Fragment() {
     }
 
     private fun mostrarCalidadAireOptimizada(evento: EventoDetalleOptimizado) {
-        val texto = buildString {
-            append("Promedio de calidad del aire durante este evento:\n\n")
+        val spannable = SpannableStringBuilder()
 
-            evento.promedioPm10?.let {
-                append("PM10: %.2f microgramos/m3\n".format(it))
-            }
-            evento.promedioPm2p5?.let {
-                append("PM2.5: %.2f microgramos/m3\n".format(it))
-            }
-            evento.promedioPm1p0?.let {
-                append("PM1.0: %.2f microgramos/m3\n".format(it))
-            }
+        // Agregar título inicial sin formato especial
+        spannable.append("Promedio de calidad del aire durante este evento:\n\n")
 
-            if (evento.promedioPm10 == null && evento.promedioPm2p5 == null && evento.promedioPm1p0 == null) {
-                append("No hay datos suficientes")
-            }
+        var existenDatos = false
+
+        // Validar y pintar PM10
+        evento.promedioPm10?.let {
+            appendDetalleColor(spannable, it.toDouble(), "PM10", 45.0, 150.0)
+            existenDatos = true
         }
 
-        binding.tvCalidadAire.text = texto.trim()
+        // Validar y pintar PM2.5
+        evento.promedioPm2p5?.let {
+            appendDetalleColor(spannable, it.toDouble(), "PM2.5", 15.0, 55.0)
+            existenDatos = true
+        }
+
+        // Validar y pintar PM1.0
+        evento.promedioPm1p0?.let {
+            appendDetalleColor(spannable, it.toDouble(), "PM1.0", 10.0, 35.0)
+            existenDatos = true
+        }
+
+        // Mostrar mensaje alternativo si no hay datos
+        if (!existenDatos) {
+            binding.tvCalidadAire.text = "No hay datos suficientes"
+        } else {
+            binding.tvCalidadAire.text = spannable
+        }
+    }
+
+    private fun appendDetalleColor(
+        spannable: SpannableStringBuilder,
+        valor: Double,
+        etiqueta: String,
+        limiteAmarillo: Double,
+        limiteRojo: Double
+    ) {
+        // Formatear texto con unidades y salto de línea
+        val texto = "$etiqueta: %.2f ug/m3\n".format(valor)
+        val start = spannable.length
+        spannable.append(texto)
+        val end = spannable.length
+
+        // Determinar color según los límites
+        val colorRes = when {
+            valor >= limiteRojo -> R.color.rojo
+            valor >= limiteAmarillo -> R.color.amarillo
+            else -> android.R.color.holo_green_dark
+        }
+
+        // Aplicar color al rango de texto agregado
+        spannable.setSpan(
+            ForegroundColorSpan(ContextCompat.getColor(binding.root.context, colorRes)),
+            start,
+            end,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
     }
 
 

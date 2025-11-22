@@ -14,6 +14,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import android.text.SpannableStringBuilder
+import android.text.Spannable
+import android.text.style.ForegroundColorSpan
+import androidx.core.content.ContextCompat
 
 class EventoAdapterOptimizado(
     private val onEventoClick: (EventoOptimizado) -> Unit
@@ -41,7 +45,6 @@ class EventoAdapterOptimizado(
             binding.apply {
                 tvFecha.text = evento.fechaEvento
 
-                // Usar hora_inicio y hora_fin ya calculados
                 if (evento.horaInicio != null && evento.horaFin != null) {
                     val horaInicio = convertirAHoraMexico(evento.horaInicio)
                     val horaFin = convertirAHoraMexico(evento.horaFin)
@@ -50,7 +53,6 @@ class EventoAdapterOptimizado(
                     tvHora.text = "Sin horario"
                 }
 
-                // Cargar imagen preview
                 evento.imagenPreview?.let { imagen ->
                     ivPreview.load(imagen.rutaImagen) {
                         crossfade(true)
@@ -59,12 +61,9 @@ class EventoAdapterOptimizado(
                     }
                 }
 
-                // Max detecciones ya calculado
                 tvMaxDetecciones.text = "Max: ${evento.maxDetecciones}"
-
                 tvDescripcion.text = evento.descripcion ?: "Sin descripcion"
 
-                // Estatus
                 when (evento.estatus) {
                     EstatusEventoEnum.PENDIENTE -> {
                         chipEstatus.text = "Pendiente"
@@ -80,19 +79,70 @@ class EventoAdapterOptimizado(
                     }
                 }
 
-                // Calidad del aire ya calculada
-                tvCalidadAire.text = buildString {
-                    evento.promedioPm10?.let { append("PM10: %.1f ug/m3".format(it)) }
-                    if (evento.promedioPm10 != null && (evento.promedioPm2p5 != null || evento.promedioPm1p0 != null)) append(" | ")
-                    evento.promedioPm2p5?.let { append("PM2.5: %.1f ug/m3".format(it)) }
-                    if (evento.promedioPm2p5 != null && evento.promedioPm1p0 != null) append(" | ")
-                    evento.promedioPm1p0?.let { append("PM1.0: %.1f ug/m3".format(it)) }
-                }.takeIf { it.isNotEmpty() } ?: "Sin datos de calidad del aire"
+                mostrarCalidadAireConColores(evento)
 
                 root.setOnClickListener {
                     onEventoClick(evento)
                 }
             }
+        }
+
+        private fun mostrarCalidadAireConColores(evento: EventoOptimizado) {
+            val pm10 = evento.promedioPm10?.toDouble() ?: 0.0
+            val pm25 = evento.promedioPm2p5?.toDouble() ?: 0.0
+            val pm1 = evento.promedioPm1p0?.toDouble() ?: 0.0
+
+            if (pm10 == 0.0 && pm25 == 0.0 && pm1 == 0.0) {
+                binding.tvCalidadAire.text = "Sin datos de calidad del aire"
+                return
+            }
+
+            val spannable = SpannableStringBuilder()
+            var needsSeparator = false
+
+            if (pm10 > 0.0) {
+                appendWithColor(spannable, pm10, "PM10", 45.0, 150.0)
+                needsSeparator = true
+            }
+
+            if (pm25 > 0.0) {
+                if (needsSeparator) spannable.append(" | ")
+                appendWithColor(spannable, pm25, "PM2.5", 15.0, 55.0)
+                needsSeparator = true
+            }
+
+            if (pm1 > 0.0) {
+                if (needsSeparator) spannable.append(" | ")
+                appendWithColor(spannable, pm1, "PM1.0", 10.0, 35.0)
+            }
+
+            binding.tvCalidadAire.text = spannable
+        }
+
+        private fun appendWithColor(
+            spannable: SpannableStringBuilder,
+            valor: Double,
+            etiqueta: String,
+            limiteAmarillo: Double,
+            limiteRojo: Double
+        ) {
+            val texto = "$etiqueta: %.1f".format(valor)
+            val start = spannable.length
+            spannable.append(texto)
+            val end = spannable.length
+
+            val color = when {
+                valor >= limiteRojo -> R.color.rojo
+                valor >= limiteAmarillo -> R.color.amarillo
+                else -> android.R.color.holo_green_dark
+            }
+
+            spannable.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(binding.root.context, color)),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         }
 
         private fun convertirAHoraMexico(horaUtc: String): String {

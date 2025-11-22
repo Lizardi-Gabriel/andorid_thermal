@@ -19,7 +19,6 @@ import com.thermal.monitoring.R
 import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.databinding.FragmentDashboardOperadorBinding
 import com.thermal.monitoring.presentation.eventos.DetalleEventoFragment
-import com.thermal.monitoring.presentation.eventos.EventoAdapter
 import com.thermal.monitoring.presentation.eventos.EventoAdapterOptimizado
 import com.thermal.monitoring.presentation.perfil.MiPerfilFragment
 import com.thermal.monitoring.utils.Resource
