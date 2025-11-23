@@ -64,14 +64,12 @@ class AdminRepository @Inject constructor(
         usuarioId: Int,
         nombreUsuario: String?,
         correoElectronico: String?,
-        password: String?,
         rol: RolUsuarioEnum?
     ): Resource<Usuario> {
         return try {
             val request = UsuarioUpdateRequest(
                 nombreUsuario = nombreUsuario,
                 correoElectronico = correoElectronico,
-                password = password,
                 rol = rol
             )
 

@@ -199,7 +199,6 @@ data class UsuarioCreateRequest(
 data class UsuarioUpdateRequest(
     @SerializedName("nombre_usuario") val nombreUsuario: String?,
     @SerializedName("correo_electronico") val correoElectronico: String?,
-    val password: String?,
     val rol: RolUsuarioEnum?
 )
 

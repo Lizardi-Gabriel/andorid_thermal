@@ -2,7 +2,7 @@ package com.thermal.monitoring.utils
 
 object Config {
     // URL base de la API
-    const val BASE_URL = "http://4.155.33.198:8000/"
+    const val BASE_URL = "http://48.192.80.197:8000/"
 
     // Timeouts de red (en segundos)
     const val CONNECT_TIMEOUT = 30L

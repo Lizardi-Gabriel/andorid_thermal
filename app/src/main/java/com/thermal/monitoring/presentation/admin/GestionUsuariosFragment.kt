@@ -2,6 +2,7 @@ package com.thermal.monitoring.presentation.admin
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +21,7 @@ import com.thermal.monitoring.data.local.TokenManager
 import com.thermal.monitoring.data.remote.RolUsuarioEnum
 import com.thermal.monitoring.data.remote.UsuarioLista
 import com.thermal.monitoring.databinding.DialogCrearUsuarioBinding
+import com.thermal.monitoring.databinding.DialogEditarUsuarioBinding
 import com.thermal.monitoring.databinding.FragmentGestionUsuariosDrawerBinding
 import com.thermal.monitoring.presentation.perfil.MiPerfilFragment
 import com.thermal.monitoring.utils.Resource
@@ -117,14 +119,79 @@ class GestionUsuariosFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        usuarioAdapter = UsuarioAdapter { usuario ->
-            mostrarDialogoEliminar(usuario)
-        }
+        usuarioAdapter = UsuarioAdapter(
+            onEditarClick = { usuario ->
+                mostrarDialogoEditar(usuario)
+            },
+            onEliminarClick = { usuario ->
+                mostrarDialogoEliminar(usuario)
+            }
+        )
 
         binding.rvUsuarios.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = usuarioAdapter
         }
+    }
+
+    /**
+     * Muestra un cuadro de diálogo para editar la información de un usuario existente
+     * @param usuario El objeto [UsuarioLista] con los datos actuales del usuario que se va a modificar.
+     * */
+    private fun mostrarDialogoEditar(usuario: UsuarioLista) {
+        val dialogBinding = DialogEditarUsuarioBinding.inflate(layoutInflater)
+
+        // Pre-llenar datos actuales
+        dialogBinding.etNombreUsuario.setText(usuario.nombreUsuario)
+        dialogBinding.etCorreo.setText(usuario.correoElectronico)
+
+        // Seleccionar rol actual
+        if (usuario.rol == RolUsuarioEnum.ADMIN) {
+            dialogBinding.rbAdmin.isChecked = true
+        } else {
+            dialogBinding.rbOperador.isChecked = true
+        }
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnCancelar.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnGuardar.setOnClickListener {
+            val nuevoNombre = dialogBinding.etNombreUsuario.text.toString().trim()
+            val nuevoCorreo = dialogBinding.etCorreo.text.toString().trim()
+
+            val nuevoRol = if (dialogBinding.rbAdmin.isChecked)
+                RolUsuarioEnum.ADMIN
+            else
+                RolUsuarioEnum.OPERADOR
+
+            // Validaciones básicas
+            if (nuevoNombre.isEmpty()) {
+                dialogBinding.tilNombreUsuario.error = "Campo requerido"
+                return@setOnClickListener
+            }
+
+            if (nuevoCorreo.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(nuevoCorreo).matches()) {
+                dialogBinding.tilCorreo.error = "Correo inválido"
+                return@setOnClickListener
+            }
+
+            // Llamar al ViewModel
+            viewModel.actualizarUsuario(
+                usuarioId = usuario.usuarioId,
+                nombreUsuario = nuevoNombre,
+                correoElectronico = nuevoCorreo,
+                rol = nuevoRol
+            )
+
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun setupListeners() {
@@ -169,6 +236,32 @@ class GestionUsuariosFragment : Fragment() {
                     ).show()
                 }
             }
+
+
+            viewModel.actualizarUsuarioState.observe(viewLifecycleOwner) { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                    }
+                    is Resource.Success -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "Usuario actualizado exitosamente",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        viewModel.limpiarEstadoActualizar()
+                    }
+                    is Resource.Error -> {
+                        Toast.makeText(
+                            requireContext(),
+                            resource.message ?: "Error al actualizar",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        viewModel.limpiarEstadoActualizar()
+                    }
+                    null -> {}
+                }
+            }
+
         }
 
         viewModel.crearUsuarioState.observe(viewLifecycleOwner) { resource ->
@@ -243,7 +336,7 @@ class GestionUsuariosFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            if (correo.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+            if (correo.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
                 dialogBinding.tilCorreo.error = "Correo invalido"
                 return@setOnClickListener
             }

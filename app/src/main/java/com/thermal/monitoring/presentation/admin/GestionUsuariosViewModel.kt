@@ -27,6 +27,9 @@ class GestionUsuariosViewModel @Inject constructor(
     private val _eliminarUsuarioState = MutableLiveData<Resource<Unit>>()
     val eliminarUsuarioState: LiveData<Resource<Unit>> = _eliminarUsuarioState
 
+    private val _actualizarUsuarioState = MutableLiveData<Resource<Usuario>>()
+    val actualizarUsuarioState: LiveData<Resource<Usuario>> = _actualizarUsuarioState
+
     fun cargarUsuarios() {
         viewModelScope.launch {
             _usuariosState.value = Resource.Loading()
@@ -72,4 +75,42 @@ class GestionUsuariosViewModel @Inject constructor(
     fun limpiarEstadoCrear() {
         _crearUsuarioState.value = null
     }
+
+
+    /**
+     * Actualiza la informacion de un usuario existente
+     **/
+    fun actualizarUsuario(
+        usuarioId: Int,
+        nombreUsuario: String,
+        correoElectronico: String,
+        rol: RolUsuarioEnum
+    ) {
+        viewModelScope.launch {
+            _actualizarUsuarioState.value = Resource.Loading()
+
+            // TOOD: verificar no nulos
+            if (nombreUsuario.isNullOrBlank() || correoElectronico.isNullOrBlank()) {
+                _actualizarUsuarioState.value = Resource.Error("Campos vacios")
+                return@launch
+            }
+
+            val result = adminRepository.actualizarUsuario(
+                usuarioId,
+                nombreUsuario,
+                correoElectronico,
+                rol
+            )
+            _actualizarUsuarioState.value = result
+
+            if (result is Resource.Success) {
+                cargarUsuarios()
+            }
+        }
+    }
+
+    fun limpiarEstadoActualizar() {
+        _actualizarUsuarioState.value = null
+    }
+
 }

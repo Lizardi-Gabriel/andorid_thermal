@@ -11,6 +11,7 @@ import com.thermal.monitoring.data.remote.UsuarioLista
 import com.thermal.monitoring.databinding.ItemUsuarioBinding
 
 class UsuarioAdapter(
+    private val onEditarClick: (UsuarioLista) -> Unit,
     private val onEliminarClick: (UsuarioLista) -> Unit
 ) : ListAdapter<UsuarioLista, UsuarioAdapter.UsuarioViewHolder>(UsuarioDiffCallback()) {
 
@@ -20,7 +21,7 @@ class UsuarioAdapter(
             parent,
             false
         )
-        return UsuarioViewHolder(binding, onEliminarClick)
+        return UsuarioViewHolder(binding, onEditarClick, onEliminarClick)
     }
 
     override fun onBindViewHolder(holder: UsuarioViewHolder, position: Int) {
@@ -29,6 +30,7 @@ class UsuarioAdapter(
 
     class UsuarioViewHolder(
         private val binding: ItemUsuarioBinding,
+        private val onEditarClick: (UsuarioLista) -> Unit,
         private val onEliminarClick: (UsuarioLista) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -48,6 +50,10 @@ class UsuarioAdapter(
                 tvTotalGestionados.text = usuario.totalEventosGestionados.toString()
                 tvConfirmados.text = usuario.eventosConfirmados.toString()
                 tvDescartados.text = usuario.eventosDescartados.toString()
+
+                root.setOnClickListener {
+                    onEditarClick(usuario)
+                }
 
                 btnEliminar.setOnClickListener {
                     onEliminarClick(usuario)
