@@ -19,8 +19,10 @@ import com.thermal.monitoring.databinding.FragmentGenerarReporteBinding
 import com.thermal.monitoring.presentation.perfil.MiPerfilFragment
 import com.thermal.monitoring.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -192,65 +194,71 @@ class GenerarReporteFragment : Fragment() {
     }
 
     private fun guardarYAbrirPDF(responseBody: okhttp3.ResponseBody) {
-        try {
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val fileName = "reporte_thermal_$timestamp.pdf"
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                val fileName = "reporte_thermal_$timestamp.pdf"
+                var fileToOpen: java.io.File? = null
+                var uriToOpen: android.net.Uri? = null
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                val contentValues = android.content.ContentValues().apply {
-                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
-                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
-                }
-
-                val uri = requireContext().contentResolver.insert(
-                    android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-                    contentValues
-                )
-
-                if (uri != null) {
-                    requireContext().contentResolver.openOutputStream(uri)?.use { outputStream ->
-                        responseBody.byteStream().use { inputStream ->
-                            inputStream.copyTo(outputStream)
-                        }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    val contentValues = android.content.ContentValues().apply {
+                        put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                        put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                        put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
                     }
 
+                    val uri = requireContext().contentResolver.insert(
+                        android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                        contentValues
+                    )
+
+                    if (uri != null) {
+                        requireContext().contentResolver.openOutputStream(uri)?.use { outputStream ->
+                            responseBody.byteStream().use { inputStream ->
+                                inputStream.copyTo(outputStream)
+                            }
+                        }
+                        uriToOpen = uri
+                    }
+                } else {
+                    val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
+                        android.os.Environment.DIRECTORY_DOWNLOADS
+                    )
+                    val file = java.io.File(downloadsDir, fileName)
+
+                    responseBody.byteStream().use { input ->
+                        file.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    fileToOpen = file
+                }
+
+                withContext(Dispatchers.Main) {
                     Toast.makeText(
                         requireContext(),
                         "Reporte guardado en Descargas: $fileName",
                         Toast.LENGTH_LONG
                     ).show()
 
-                    abrirPDFMediaStore(uri)
-                }
-            } else {
-                val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
-                    android.os.Environment.DIRECTORY_DOWNLOADS
-                )
-                val file = java.io.File(downloadsDir, fileName)
-
-                responseBody.byteStream().use { input ->
-                    file.outputStream().use { output ->
-                        input.copyTo(output)
+                    if (uriToOpen != null) {
+                        abrirPDFMediaStore(uriToOpen!!)
+                    } else if (fileToOpen != null) {
+                        abrirPDF(fileToOpen!!)
                     }
                 }
 
-                Toast.makeText(
-                    requireContext(),
-                    "Reporte guardado en Descargas: $fileName",
-                    Toast.LENGTH_LONG
-                ).show()
-
-                abrirPDF(file)
+            } catch (e: Exception) {
+                android.util.Log.e("GenerarReporte", "Error al guardar PDF", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        requireContext(),
+                        "Error al guardar PDF: ${e.localizedMessage}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
-
-        } catch (e: Exception) {
-            android.util.Log.e("GenerarReporte", "Error al guardar PDF", e)
-            Toast.makeText(
-                requireContext(),
-                "Error al guardar PDF: ${e.localizedMessage}",
-                Toast.LENGTH_LONG
-            ).show()
         }
     }
 
@@ -262,7 +270,7 @@ class GenerarReporteFragment : Fragment() {
             }
             startActivity(intent)
         } catch (e: Exception) {
-            // Ignorar silenciosamente
+            Toast.makeText(requireContext(), "No se encontró app para abrir PDF", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -280,7 +288,7 @@ class GenerarReporteFragment : Fragment() {
             }
             startActivity(intent)
         } catch (e: Exception) {
-            // Ignorar silenciosamente
+            Toast.makeText(requireContext(), "No se encontró app para abrir PDF", Toast.LENGTH_SHORT).show()
         }
     }
 
