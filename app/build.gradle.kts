@@ -15,8 +15,8 @@ android {
         applicationId = "com.thermal.monitoring"
         minSdk = 24
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.4"
+        versionCode = 6
+        versionName = "1.4.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
