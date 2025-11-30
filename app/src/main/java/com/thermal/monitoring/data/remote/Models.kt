@@ -123,6 +123,10 @@ data class EventoOptimizado(
     @SerializedName("promedio_pm2p5") val promedioPm2p5: Float?,
     @SerializedName("promedio_pm1p0") val promedioPm1p0: Float?,
 
+    @SerializedName("color_pm10") val colorPm10: String?,
+    @SerializedName("color_pm2p5") val colorPm2p5: String?,
+    @SerializedName("color_pm1p0") val colorPm1p0: String?,
+
     // Solo imagen preview
     @SerializedName("imagen_preview") val imagenPreview: Imagen?
 )
@@ -151,6 +155,10 @@ data class EventoDetalleOptimizado(
     @SerializedName("promedio_pm10") val promedioPm10: Float?,
     @SerializedName("promedio_pm2p5") val promedioPm2p5: Float?,
     @SerializedName("promedio_pm1p0") val promedioPm1p0: Float?,
+
+    @SerializedName("color_pm10") val colorPm10: String?,
+    @SerializedName("color_pm2p5") val colorPm2p5: String?,
+    @SerializedName("color_pm1p0") val colorPm1p0: String?,
 
     // Imagen preview
     @SerializedName("imagen_preview") val imagenPreview: Imagen?,

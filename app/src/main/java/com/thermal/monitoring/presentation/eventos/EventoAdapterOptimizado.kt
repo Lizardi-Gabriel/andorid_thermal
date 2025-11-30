@@ -101,19 +101,19 @@ class EventoAdapterOptimizado(
             var needsSeparator = false
 
             if (pm10 > 0.0) {
-                appendWithColor(spannable, pm10, "PM10", 45.0, 150.0)
+                appendWithColor(spannable, pm10, "PM10", evento.colorPm10)
                 needsSeparator = true
             }
 
             if (pm25 > 0.0) {
                 if (needsSeparator) spannable.append(" | ")
-                appendWithColor(spannable, pm25, "PM2.5", 15.0, 55.0)
+                appendWithColor(spannable, pm25, "PM2.5", evento.colorPm2p5)
                 needsSeparator = true
             }
 
             if (pm1 > 0.0) {
                 if (needsSeparator) spannable.append(" | ")
-                appendWithColor(spannable, pm1, "PM1.0", 10.0, 35.0)
+                appendWithColor(spannable, pm1, "PM1.0", evento.colorPm1p0)
             }
 
             binding.tvCalidadAire.text = spannable
@@ -123,22 +123,21 @@ class EventoAdapterOptimizado(
             spannable: SpannableStringBuilder,
             valor: Double,
             etiqueta: String,
-            limiteAmarillo: Double,
-            limiteRojo: Double
+            colorHex: String?
         ) {
             val texto = "$etiqueta: %.1f".format(valor)
             val start = spannable.length
             spannable.append(texto)
             val end = spannable.length
 
-            val color = when {
-                valor >= limiteRojo -> R.color.rojo
-                valor >= limiteAmarillo -> R.color.amarillo
-                else -> android.R.color.holo_green_dark
+            val colorInt = try {
+                android.graphics.Color.parseColor(colorHex ?: "#00FF00")
+            } catch (e: Exception) {
+                android.graphics.Color.GRAY
             }
 
             spannable.setSpan(
-                ForegroundColorSpan(ContextCompat.getColor(binding.root.context, color)),
+                ForegroundColorSpan(colorInt),
                 start,
                 end,
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE

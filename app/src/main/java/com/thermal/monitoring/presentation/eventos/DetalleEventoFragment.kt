@@ -265,31 +265,25 @@ class DetalleEventoFragment : Fragment() {
 
     private fun mostrarCalidadAireOptimizada(evento: EventoDetalleOptimizado) {
         val spannable = SpannableStringBuilder()
-
-        // Agregar título inicial sin formato especial
         spannable.append("Promedio de calidad del aire durante este evento:\n\n")
 
         var existenDatos = false
 
-        // Validar y pintar PM10
         evento.promedioPm10?.let {
-            appendDetalleColor(spannable, it.toDouble(), "PM10", 45.0, 150.0)
+            appendDetalleColor(spannable, it.toDouble(), "PM10", evento.colorPm10)
             existenDatos = true
         }
 
-        // Validar y pintar PM2.5
         evento.promedioPm2p5?.let {
-            appendDetalleColor(spannable, it.toDouble(), "PM2.5", 15.0, 55.0)
+            appendDetalleColor(spannable, it.toDouble(), "PM2.5", evento.colorPm2p5)
             existenDatos = true
         }
 
-        // Validar y pintar PM1.0
         evento.promedioPm1p0?.let {
-            appendDetalleColor(spannable, it.toDouble(), "PM1.0", 10.0, 35.0)
+            appendDetalleColor(spannable, it.toDouble(), "PM1.0", evento.colorPm1p0)
             existenDatos = true
         }
 
-        // Mostrar mensaje alternativo si no hay datos
         if (!existenDatos) {
             binding.tvCalidadAire.text = "No hay datos suficientes"
         } else {
@@ -297,36 +291,35 @@ class DetalleEventoFragment : Fragment() {
         }
     }
 
+
+    /**
+     * colocar los detalles del evento
+     * */
     private fun appendDetalleColor(
         spannable: SpannableStringBuilder,
         valor: Double,
         etiqueta: String,
-        limiteAmarillo: Double,
-        limiteRojo: Double
+        colorHex: String?
     ) {
-        // Formatear texto con unidades y salto de línea
         val texto = "$etiqueta: %.2f ug/m3\n".format(valor)
         val start = spannable.length
         spannable.append(texto)
         val end = spannable.length
 
-        // Determinar color según los límites
-        val colorRes = when {
-            valor >= limiteRojo -> R.color.rojo
-            valor >= limiteAmarillo -> R.color.amarillo
-            else -> android.R.color.holo_green_dark
+        // Parsear color
+        val colorInt = try {
+            android.graphics.Color.parseColor(colorHex ?: "#008000")
+        } catch (e: Exception) {
+            android.graphics.Color.DKGRAY
         }
 
-        // Aplicar color al rango de texto agregado
         spannable.setSpan(
-            ForegroundColorSpan(ContextCompat.getColor(binding.root.context, colorRes)),
+            ForegroundColorSpan(colorInt),
             start,
             end,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
     }
-
-
     private fun setupBotonesAccion(evento: EventoDetalleOptimizado) {
         binding.btnConfirmar.setOnClickListener {
             mostrarDialogoConfirmacion(
