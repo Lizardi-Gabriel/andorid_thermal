@@ -10,5 +10,10 @@
         <item name="colorSecondary">@color/gris</item>
         <item name="colorSecondaryVariant">#FF0000</item>
 
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowTranslucentStatus">true</item>
+
+
+
     </style>
 </resources>
