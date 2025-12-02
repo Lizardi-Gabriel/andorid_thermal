@@ -5,9 +5,9 @@ object Config {
     const val BASE_URL = "http://48.192.80.197:8000/"
 
     // Timeouts de red (en segundos)
-    const val CONNECT_TIMEOUT = 30L
-    const val READ_TIMEOUT = 30L
-    const val WRITE_TIMEOUT = 30L
+    const val CONNECT_TIMEOUT = 3600L
+    const val READ_TIMEOUT = 3600L
+    const val WRITE_TIMEOUT = 3600L
 
     // Configuracion de logging
     const val ENABLE_LOGGING = true
